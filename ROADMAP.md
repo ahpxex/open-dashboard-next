@@ -35,8 +35,10 @@ Not yet built (Phase 5 — hardening):
 
 - **RBAC** (`role` + `requireRole` gate + UI permission helper).
 - **CI** (GitHub Actions: typecheck + lint + build + test with a Postgres service).
-- **`strip-demo` command** (a script; the skill documents the manual steps today).
 - **Playwright** smoke tests (Vitest units exist; e2e is manual via Chrome MCP).
+
+(The **`strip-demo` command** — `bun run strip-demo` — has since shipped:
+`scripts/strip-demo.ts` removes the demo resources/data and leaves a clean shell.)
 
 ---
 
@@ -94,8 +96,8 @@ Each phase ends green (`tsc` + `biome` + `build`) and, from Phase 5 on, with
 passing tests. The chosen priorities from planning are marked **★**.
 
 > **Status:** Phases 1–4 are ✅ complete (built, unit-tested, demoed on real
-> pages, and Chrome-MCP e2e-verified). Phase 5 (RBAC / CI / strip-demo command)
-> remains.
+> pages, and Chrome-MCP e2e-verified). The `strip-demo` command has since
+> shipped; Phase 5 (RBAC / CI / Playwright) remains.
 
 ### Phase 1 — Atoms / foundations ✅
 *Everything else reuses these; build them first.*
@@ -143,7 +145,9 @@ passing tests. The chosen priorities from planning are marked **★**.
 - **Tests**: Vitest (units: adapters, list-params) + Playwright smoke (auth → dashboard →
   CRUD → detail). This is the agent's safety net.
 - **CI**: GitHub Actions (typecheck + lint + build + test) + a Postgres service.
-- **`strip-demo`**: command that removes demo resources/data and leaves a clean shell.
+- **`strip-demo`** ✅ shipped: `bun run strip-demo` (`scripts/strip-demo.ts`) removes
+  the demo resources/data and leaves a clean shell (verified green via
+  `typecheck`/`check`/`test`/`build` on the stripped shell).
 
 ---
 

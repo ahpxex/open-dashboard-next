@@ -28,14 +28,36 @@ const h = vi.hoisted(() => {
 
 vi.mock("@/db", () => ({ db: h.dbMock }));
 
-import { products } from "@/db/schema";
+import {
+  doublePrecision,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { drizzleRepository } from "./drizzle-repository";
 
-const repo = drizzleRepository(products, {
-  searchColumns: [products.name, products.sku],
-  sortColumns: { name: products.name, price: products.price },
-  filterColumns: { status: products.status },
-  defaultSort: { column: products.createdAt, dir: "desc" },
+// A self-contained fixture table so this adapter test depends on no demo
+// resource — the demo (`products`/`orders`/`posts`) is removable via
+// `bun run strip-demo`, and the platform tests must stay green afterwards.
+const items = pgTable("items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  category: text("category").notNull(),
+  price: doublePrecision("price").notNull().default(0),
+  stock: integer("stock").notNull().default(0),
+  status: text("status").notNull().default("active"),
+  sku: text("sku").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+const repo = drizzleRepository(items, {
+  searchColumns: [items.name, items.sku],
+  sortColumns: { name: items.name, price: items.price },
+  filterColumns: { status: items.status },
+  defaultSort: { column: items.createdAt, dir: "desc" },
   updatedAtKey: "updatedAt",
 });
 
@@ -98,7 +120,7 @@ describe("drizzleRepository getOne/create/update/remove", () => {
       status: "available",
     });
 
-    expect(h.dbMock.insert).toHaveBeenCalledWith(products);
+    expect(h.dbMock.insert).toHaveBeenCalledWith(items);
     expect(row).toEqual({ id: "new", name: "X" });
   });
 
@@ -120,7 +142,7 @@ describe("drizzleRepository getOne/create/update/remove", () => {
     h.dbMock.delete.mockReturnValue({ where });
 
     await repo.remove("1");
-    expect(h.dbMock.delete).toHaveBeenCalledWith(products);
+    expect(h.dbMock.delete).toHaveBeenCalledWith(items);
     expect(where).toHaveBeenCalled();
   });
 });

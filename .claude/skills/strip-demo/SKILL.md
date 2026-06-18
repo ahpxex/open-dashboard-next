@@ -5,8 +5,31 @@ description: Remove the demo resources (products, orders, posts) and the sample 
 
 # Strip the demo
 
-The demo is intentionally removable. Delete it, then add your own resources with
-`add-crud-resource`.
+The demo is intentionally removable.
+
+## Fastest path: the command
+
+```
+bun run strip-demo
+```
+
+`scripts/strip-demo.ts` does everything below automatically — deletes the demo
+feature folders + routes + fake chart data, removes the `products`/`orders` tables
+from `src/db/schema.ts` (pruning now-unused imports), removes the demo sidebar
+entries (keeping Dashboard + the `// create-resource:anchor`), replaces the sample
+dashboard with a minimal welcome page, rewrites the seed to only create the dev
+account, and formats the result. It does **not** touch the database.
+
+After running it:
+
+```
+bun run db:generate && bun run db:migrate            # drop the demo tables
+bun run typecheck && bun run check && bun run test && bun run build
+bun run create-resource <name>                       # add your first resource
+```
+
+The manual breakdown below documents what the command does (and is the fallback
+if you've already customised these files and want to strip by hand).
 
 ## What is demo vs. platform
 
