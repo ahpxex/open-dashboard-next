@@ -8,8 +8,8 @@ A full-stack back-office / dashboard starter ("中台" template) for shipping Sa
 - **Routing**: [TanStack Router](https://tanstack.com/router) — file-based, type-safe routes under `src/routes/`. Route tree is generated into `src/routeTree.gen.ts` (do not edit by hand).
 - **Server state**: [TanStack Query](https://tanstack.com/query) — caching + mutations, SSR-integrated via `@tanstack/react-router-ssr-query`.
 - **Tables**: [TanStack Table](https://tanstack.com/table) — headless, wrapped by the generic `DataTable` in `src/infra/table`.
-- **Database**: [PostgreSQL](https://www.postgresql.org/) via [Drizzle ORM](https://orm.drizzle.team/) (`drizzle-orm/node-postgres`). Schema in `src/db/schema.ts`; client in `src/db/index.ts`. Migrations in `./drizzle`, managed with `drizzle-kit`.
-- **Auth**: [better-auth](https://www.better-auth.com/) — email + password, sessions persisted in Postgres via the Drizzle adapter (`usePlural: true`), cookies via the `tanstackStartCookies` plugin (must be the LAST plugin). Real hashed passwords. Config in `src/lib/auth.ts`.
+- **Database**: [PostgreSQL](https://www.postgresql.org/) via [Drizzle ORM](https://orm.drizzle.team/) (`drizzle-orm/node-postgres`). Schema in `src/db/schema.ts`; client in `src/db/index.ts`. Migrations in `./drizzle`, managed with `drizzle-kit`. **The database is the default backend, not a hard requirement**: with no `DATABASE_URL` the app boots on in-memory adapters (`bun dev`, no Docker). See `docs/backends.md`.
+- **Auth**: [better-auth](https://www.better-auth.com/) — email + password, real hashed passwords; sessions in Postgres via the Drizzle adapter when `DATABASE_URL` is set, else better-auth's in-memory adapter (zero-config dev). The app reaches auth through the **`AuthProvider` seam** (`src/lib/auth-provider.ts`) + the browser client (`src/lib/auth-client.ts`), so the auth backend is a swappable preset; better-auth config (cookies via the `tanstackStartCookies` plugin — must be the LAST plugin) is in `src/lib/auth.ts`. See `docs/backends.md`.
 - **UI**: [shadcn/ui](https://ui.shadcn.com/) components built on **[`@base-ui/react`](https://base-ui.com/) (NOT Radix)**, in `src/components/ui`. **Tailwind CSS v4**, **Phosphor icons** (`@phosphor-icons/react`), light/dark via `next-themes`.
 - **Charts**: Recharts. **Client state**: Zustand. **Validation**: Zod (v4).
 - **Tooling**: **Bun** (package manager + script runtime), **Biome** (lint + format), **Vitest**. **TypeScript** strict, path alias `@/*` → `./src/*`.
@@ -25,13 +25,13 @@ File-based routes live in `src/routes/`:
 - `__root.tsx` — HTML shell, head, providers (`next-themes`).
 - `_app.tsx` — **auth-guarded layout**. Its `beforeLoad` calls `getSession()` (a server fn) and `throw redirect({ to: "/login" })` if there's no session; otherwise it returns `{ user }` into the route context. All protected pages live under `src/routes/_app/`.
 - `_auth.tsx` — public auth layout; its `beforeLoad` redirects already-authenticated users to `/`. Children: `login`, `register`.
-- `api/auth/$.ts` — mounts better-auth's HTTP handler (`auth.handler`) for `GET`/`POST`.
+- `api/auth/$.ts` — mounts the auth provider's HTTP handler (`authProvider.handler`) for `GET`/`POST`.
 
-Server-side session helpers are in `src/lib/auth-server.ts`:
-- `getSession()` — a `createServerFn` reading the better-auth session; use in route `beforeLoad`/loaders.
-- `requireUser()` — asserts an authenticated user; **call at the top of every mutating/protected server-fn handler**. Throws `"UNAUTHORIZED"` if there is no session.
-
-The browser auth client (`signIn`, `signUp`, `signOut`, `useSession`) is in `src/lib/auth-client.ts`.
+Auth is reached through a seam so the backend is swappable (`docs/backends.md`):
+- `src/lib/auth-provider.ts` — the **`AuthProvider`** interface (`getSession(headers)` / `handler(request)`) + the active `authProvider` (better-auth by default). Server-only.
+- `getSession()` (`src/lib/auth-server.ts`) — a `createServerFn` wrapping `authProvider.getSession`; use in route `beforeLoad`/loaders. Returns the normalized `{ user }` session.
+- `requireUser()` (`src/lib/require-user.ts`) — asserts an authenticated user via `authProvider`; **call at the top of every mutating/protected server-fn handler**. Throws `"UNAUTHORIZED"` if there is no session.
+- The browser auth client (`signIn`, `signUp`, `signOut`, `useSession`) is in `src/lib/auth-client.ts` (the browser half of the seam).
 
 ### The resource pattern (most important convention)
 
@@ -58,13 +58,13 @@ Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottom
 ### Platform layers (compose from these — don't reinvent)
 
 - **Atoms** (`src/components`, `src/config`): the form system (`@/components/form` — TanStack Form + zod; `TextField`/`NumberField`/`SelectField`/`TextareaField`/`SubmitButton`/`FormError`), toast (`@/lib/toast` → sonner), `useConfirm()` (`@/components/ui/confirm-dialog`), chart components (`@/components/charts` — `StatCard`/`ChartCard`/`AreaChart`/`BarChart`/`PieChart`, CSS-var themed), and `appConfig` (`src/config/app.ts` — the single rebrand surface: name/logo/nav/theme).
-- **Data access** (`src/infra/data`): the `Repository<T, TInput>` interface + `drizzleRepository` / `restRepository` / `graphqlRepository` adapters over `ListParams`/`ListResult`. See `docs/data-adapters.md`.
+- **Data access** (`src/infra/data`): the `Repository<T, TInput>` interface + `drizzleRepository` / `restRepository` / `graphqlRepository` / `memoryRepository` (zero-config default) adapters over `ListParams`/`ListResult`. A resource binds an adapter in `server.ts`, typically via `hasDatabase` (`@/lib/backend`). See `docs/data-adapters.md` and `docs/backends.md`.
 - **List views** (`src/infra/table`, `src/infra/list`): `DataTable` (server-driven, URL-synced via `useTableSearch`, debounced search, opt-in bulk select) and `CardList` + `useResourceList` (the gallery counterpart, same plumbing).
 - **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each has a skill in `.claude/skills/`. Catalogue: `PATTERNS.md`.
 
 ### Agent layer
 
-`.claude/skills/*` (one per archetype/operation: `add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-form`, `add-chart-page`, `add-data-source`, `rebrand`, `strip-demo`), `.claude/commands/*` (`/add-resource`, `/port`), `PATTERNS.md` (the catalogue), and `PORTING.md` (how to start a real product). Find the closest pattern, copy its canonical example, follow its invariants.
+`.claude/skills/*` (one per archetype/operation: `add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-form`, `add-chart-page`, `add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`), `.claude/commands/*` (`/add-resource`, `/port`), `PATTERNS.md` (the catalogue), and `PORTING.md` (how to start a real product). Find the closest pattern, copy its canonical example, follow its invariants.
 
 ## How to add a resource
 
@@ -113,5 +113,6 @@ Or run `bun run create-resource <name>` to scaffold all of the above — it also
 - `bun run typecheck` — `tsc --noEmit`. `bun run test` — Vitest.
 
 See `README.md` for full setup, `docs/resources.md` for the resource guide,
-`docs/data-adapters.md` for backends, `PATTERNS.md` for the shape catalogue, and
+`docs/data-adapters.md` for data adapters, `docs/backends.md` for swapping the
+data/auth backend (presets), `PATTERNS.md` for the shape catalogue, and
 `PORTING.md` to start a real product.

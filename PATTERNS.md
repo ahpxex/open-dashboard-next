@@ -42,11 +42,14 @@ skill lives in `.claude/skills/` and this file links to it.
 | Piece | Status | Notes |
 | --- | --- | --- |
 | `Repository<T, TInput>` interface | ✅ | `src/infra/data/repository.ts` — `list/getOne/create/update/remove` |
-| `drizzleRepository` | ✅ | `src/infra/data/drizzle-repository.ts` — backs products/orders |
+| `drizzleRepository` | ✅ | `src/infra/data/drizzle-repository.ts` — backs products/orders when `DATABASE_URL` is set |
+| `memoryRepository` | ✅ | `src/infra/data/memory-repository.ts` — zero-config default; backs products/orders with no DB (`features/*/demo-data.ts`) |
 | `restRepository` | ✅ | `src/infra/data/rest-repository.ts` — backs `posts` (jsonplaceholder) |
 | `graphqlRepository` | ✅ | `src/infra/data/graphql-repository.ts` — shipped + unit-tested |
+| **`AuthProvider`** seam | ✅ | `src/lib/auth-provider.ts` (server) + `src/lib/auth-client.ts` (browser) — auth backend is a swappable preset |
 
-See [`docs/data-adapters.md`](./docs/data-adapters.md) for the full guide.
+See [`docs/data-adapters.md`](./docs/data-adapters.md) for data adapters and
+[`docs/backends.md`](./docs/backends.md) for swapping the data/auth backend.
 
 ---
 

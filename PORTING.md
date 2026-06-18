@@ -20,17 +20,26 @@ dashboard, leaving a clean, branded shell. Keep everything under
 `src/components`, `src/infra`, `src/config`, `src/lib`, the routing/auth shell,
 and the generator. Migrate away the demo tables. `bun run typecheck && check`.
 
-## 3. Pick a data source per entity → skill `add-data-source`
+## 3. Pick the backend → skills `add-data-source`, `add-backend-preset`
 
-Every page archetype is written against the `Repository<T, TInput>` interface,
-so each entity just binds a backend in its `server.ts`:
+The app reaches data and auth through two seams, so the backend is a swappable
+preset — not something baked in. With no `DATABASE_URL` everything runs on
+in-memory adapters, so you can build before wiring a real backend.
 
-- **Postgres** (default) — `drizzleRepository` + a Drizzle table.
+**Data** — every archetype is written against `Repository<T, TInput>`, so each
+entity binds a backend in its `server.ts`:
+
+- **Postgres** (default) — `drizzleRepository` + a Drizzle table (in-memory with no DB).
 - **REST** — `restRepository` (no DB table; proxies an external JSON API).
 - **GraphQL** — `graphqlRepository`.
 
-See `docs/data-adapters.md`. Adapters run only in server fns, so secrets stay
-server-side.
+**Auth** — if the project's auth isn't better-auth + Postgres (e.g. Supabase, or
+an external API issuing JWTs), implement an `AuthProvider` (`src/lib/auth-provider.ts`)
+and reimplement `src/lib/auth-client.ts`. The pages, guard, and `requireUser`
+don't change.
+
+See `docs/data-adapters.md` (data) and `docs/backends.md` (the full backend-preset
+model). Adapters/providers run only server-side, so secrets stay off the client.
 
 ## 4. Assemble the resources and shapes
 
