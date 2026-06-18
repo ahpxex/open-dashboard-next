@@ -8,3 +8,7 @@ export type {
   Repository,
   SortDir,
 } from "./repository";
+export {
+  type RestRepositoryConfig,
+  restRepository,
+} from "./rest-repository";

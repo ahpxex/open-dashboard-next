@@ -1,6 +1,7 @@
 import type { Icon } from "@phosphor-icons/react";
 
 import {
+  FileTextIcon,
   GearIcon,
   HouseIcon,
   PackageIcon,
@@ -24,6 +25,7 @@ export const mainMenuItems: MenuGroup[] = [
       { label: "Dashboard", href: "/", icon: HouseIcon },
       { label: "Products", href: "/products", icon: PackageIcon },
       { label: "Orders", href: "/orders", icon: PackageIcon },
+      { label: "Posts", href: "/posts", icon: FileTextIcon },
       // create-resource:anchor (keep this line — generated resources are inserted above)
     ],
   },
