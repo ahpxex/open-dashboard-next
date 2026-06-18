@@ -12,6 +12,7 @@
  * After running: `bun run db:generate && bun run db:migrate`, then customise
  * the fields in schema.ts / the feature folder to fit your domain.
  */
+import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -68,6 +69,13 @@ export const __NAME__InputSchema = z.object({
   description: z.string().optional().default(""),
 });
 export type __TYPE__Input = z.infer<typeof __NAME__InputSchema>;
+
+/** Client-side form validator (input types match the TanStack Form values). */
+export const __NAME__FormSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  status: z.enum(__NAME__Statuses),
+  description: z.string(),
+});
 
 export const __NAME__UpdateSchema = __NAME__InputSchema.extend({
   id: z.string().min(1),
@@ -172,6 +180,7 @@ const queriesTs = `import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toastError, toastSuccess } from "@/lib/toast";
 import type { __TYPE__Input, __TYPE__ListParams, __TYPE__Update } from "./schema";
 import {
   create__TITLE__,
@@ -198,8 +207,11 @@ export function useCreate__TYPE__() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: __TYPE__Input) => create__TITLE__({ data: input }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: __NAME__Keys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: __NAME__Keys.all });
+      toastSuccess("__TYPE__ created");
+    },
+    onError: (err) => toastError(err, "Failed to create __NAME__"),
   });
 }
 
@@ -207,8 +219,11 @@ export function useUpdate__TYPE__() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: __TYPE__Update) => update__TITLE__({ data: input }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: __NAME__Keys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: __NAME__Keys.all });
+      toastSuccess("__TYPE__ updated");
+    },
+    onError: (err) => toastError(err, "Failed to update __NAME__"),
   });
 }
 
@@ -216,8 +231,11 @@ export function useDelete__TYPE__() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => delete__TITLE__({ data: id }),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: __NAME__Keys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: __NAME__Keys.all });
+      toastSuccess("__TYPE__ deleted");
+    },
+    onError: (err) => toastError(err, "Failed to delete __NAME__"),
   });
 }
 `;
@@ -303,12 +321,19 @@ export const __NAME__TableConfig = {
 `;
 
 const routeTsx = `import { PlusIcon } from "@phosphor-icons/react";
+import { useForm } from "@tanstack/react-form";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import type { SortingState } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useMemo, useState } from "react";
+import {
+  FormError,
+  SelectField,
+  SubmitButton,
+  TextareaField,
+  TextField,
+} from "@/components/form";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
   DialogClose,
@@ -318,16 +343,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import type { __TYPE__ } from "@/db/schema";
 import { create__TITLE__Columns } from "@/features/__NAME__/columns";
 import { __NAME__Filters, __NAME__TableConfig } from "@/features/__NAME__/config";
@@ -339,60 +354,52 @@ import {
 } from "@/features/__NAME__/queries";
 import {
   type __TYPE__Input,
-  type __TYPE__ListParams,
+  __NAME__FormSchema,
+  __NAME__InputSchema,
+  __NAME__ListParamsSchema,
   __NAME__Statuses,
 } from "@/features/__NAME__/schema";
-import { DataTable } from "@/infra/table";
-
-const DEFAULT_PARAMS: __TYPE__ListParams = {
-  page: 1,
-  pageSize: __NAME__TableConfig.defaultPageSize,
-  search: "",
-  status: "",
-  sortBy: undefined,
-  sortDir: undefined,
-};
+import { DataTable, useTableSearch } from "@/infra/table";
+import { errorMessage } from "@/lib/toast";
 
 export const Route = createFileRoute("/_app/__NAME__")({
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(__NAME__ListQuery(DEFAULT_PARAMS)),
+  validateSearch: __NAME__ListParamsSchema,
+  loaderDeps: ({ search }) => search,
+  loader: ({ context, deps }) =>
+    context.queryClient.ensureQueryData(__NAME__ListQuery(deps)),
   component: __TITLE__Page,
 });
 
 type DialogState = { mode: "create" | "edit"; row?: __TYPE__ } | null;
 
 function __TITLE__Page() {
-  const [page, setPage] = useState(DEFAULT_PARAMS.page);
-  const [pageSize, setPageSize] = useState(DEFAULT_PARAMS.pageSize);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const table = useTableSearch(search, navigate);
   const [dialog, setDialog] = useState<DialogState>(null);
 
-  const params: __TYPE__ListParams = {
-    page,
-    pageSize,
-    search,
-    status,
-    sortBy: sorting[0]?.id,
-    sortDir: sorting[0] ? (sorting[0].desc ? "desc" : "asc") : undefined,
-  };
-
   const query = useQuery({
-    ...__NAME__ListQuery(params),
+    ...__NAME__ListQuery(search),
     placeholderData: keepPreviousData,
   });
   const remove = useDelete__TYPE__();
+  const confirm = useConfirm();
 
   const columns = useMemo(
     () =>
       create__TITLE__Columns({
         onEdit: (row) => setDialog({ mode: "edit", row }),
-        onDelete: (row) => {
-          if (window.confirm(\`Delete "\${row.name}"?\`)) remove.mutate(row.id);
+        onDelete: async (row) => {
+          const ok = await confirm({
+            title: \`Delete "\${row.name}"?\`,
+            description: "This action cannot be undone.",
+            confirmLabel: "Delete",
+            destructive: true,
+          });
+          if (ok) remove.mutate(row.id);
         },
       }),
-    [remove],
+    [remove, confirm],
   );
 
   return (
@@ -409,34 +416,20 @@ function __TITLE__Page() {
         data={query.data?.rows ?? []}
         total={query.data?.total ?? 0}
         isLoading={query.isLoading || query.isFetching}
-        searchValue={search}
-        onSearchChange={(value) => {
-          setSearch(value);
-          setPage(1);
-        }}
+        searchValue={search.search}
+        onSearchChange={table.setSearch}
         searchPlaceholder={__NAME__TableConfig.searchPlaceholder}
         filters={__NAME__Filters}
-        filterValues={{ status }}
-        onFilterChange={(key, value) => {
-          if (key === "status") {
-            setStatus(value);
-            setPage(1);
-          }
-        }}
+        filterValues={{ status: search.status }}
+        onFilterChange={table.setFilter}
         onRefresh={() => query.refetch()}
-        sorting={sorting}
-        onSortingChange={(updater) => {
-          setSorting(updater);
-          setPage(1);
-        }}
-        page={page}
-        pageSize={pageSize}
+        sorting={table.sorting}
+        onSortingChange={table.onSortingChange}
+        page={search.page}
+        pageSize={search.pageSize}
         pageSizeOptions={__NAME__TableConfig.pageSizeOptions}
-        onPageChange={setPage}
-        onPageSizeChange={(size) => {
-          setPageSize(size);
-          setPage(1);
-        }}
+        onPageChange={table.setPage}
+        onPageSizeChange={table.setPageSize}
         emptyMessage={__NAME__TableConfig.emptyMessage}
         toolbarActions={
           <Button onClick={() => setDialog({ mode: "create" })}>
@@ -464,6 +457,8 @@ const EMPTY_FORM: __TYPE__Input = {
   description: "",
 };
 
+const statusOptions = __NAME__Statuses.map((value) => ({ value, label: value }));
+
 function toForm(row?: __TYPE__): __TYPE__Input {
   if (!row) return { ...EMPTY_FORM };
   return {
@@ -484,36 +479,6 @@ function __TYPE__FormDialog({
   row?: __TYPE__;
   onOpenChange: (open: boolean) => void;
 }) {
-  const create = useCreate__TYPE__();
-  const update = useUpdate__TYPE__();
-  const [form, setForm] = useState<__TYPE__Input>(() => toForm(row));
-  const [error, setError] = useState<string | null>(null);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on open
-  useEffect(() => {
-    if (open) {
-      setForm(toForm(row));
-      setError(null);
-    }
-  }, [open, row]);
-
-  const pending = create.isPending || update.isPending;
-
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setError(null);
-    try {
-      if (mode === "edit" && row) {
-        await update.mutateAsync({ id: row.id, ...form });
-      } else {
-        await create.mutateAsync(form);
-      }
-      onOpenChange(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -523,63 +488,86 @@ function __TYPE__FormDialog({
           </DialogTitle>
           <DialogDescription>Fill in the details below.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={form.status}
-              onValueChange={(value) =>
-                setForm({ ...form, status: value as __TYPE__Input["status"] })
-              }
-            >
-              <SelectTrigger id="status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {__NAME__Statuses.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              rows={3}
-              value={form.description ?? ""}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-            />
-          </div>
-          <DialogFooter>
-            <DialogClose render={<Button type="button" variant="outline" />}>
-              Cancel
-            </DialogClose>
-            <Button type="submit" disabled={pending}>
-              {pending ? "Saving…" : "Save"}
-            </Button>
-          </DialogFooter>
-        </form>
+
+        {open ? (
+          <__TYPE__Form
+            key={row?.id ?? "new"}
+            mode={mode}
+            row={row}
+            onDone={() => onOpenChange(false)}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function __TYPE__Form({
+  mode,
+  row,
+  onDone,
+}: {
+  mode: "create" | "edit";
+  row?: __TYPE__;
+  onDone: () => void;
+}) {
+  const create = useCreate__TYPE__();
+  const update = useUpdate__TYPE__();
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const form = useForm({
+    defaultValues: toForm(row),
+    validators: { onChange: __NAME__FormSchema },
+    onSubmit: async ({ value }) => {
+      setServerError(null);
+      const payload = __NAME__InputSchema.parse(value);
+      try {
+        if (mode === "edit" && row) {
+          await update.mutateAsync({ id: row.id, ...payload });
+        } else {
+          await create.mutateAsync(payload);
+        }
+        onDone();
+      } catch (err) {
+        setServerError(errorMessage(err));
+      }
+    },
+  });
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        form.handleSubmit();
+      }}
+      className="flex flex-col gap-4"
+    >
+      <FormError message={serverError} />
+
+      <TextField form={form} name="name" label="Name" required />
+
+      <SelectField
+        form={form}
+        name="status"
+        label="Status"
+        options={statusOptions}
+      />
+
+      <TextareaField
+        form={form}
+        name="description"
+        label="Description"
+        rows={3}
+      />
+
+      <DialogFooter>
+        <DialogClose render={<Button type="button" variant="outline" />}>
+          Cancel
+        </DialogClose>
+        <SubmitButton form={form}>Save</SubmitButton>
+      </DialogFooter>
+    </form>
   );
 }
 `;
@@ -619,6 +607,16 @@ const sidebarSrc = readFileSync(sidebarFile, "utf8");
 if (sidebarSrc.includes(ANCHOR) && !sidebarSrc.includes(`href: "/${name}"`)) {
   const item = `      { label: "${TitlePlural}", href: "/${name}", icon: PackageIcon },\n      ${ANCHOR}`;
   writeFileSync(sidebarFile, sidebarSrc.replace(ANCHOR, item.trimStart()));
+}
+
+// Format the generated + touched files so the output is lint-clean immediately.
+try {
+  execSync(
+    `bunx biome check --write ${featureDir} ${routeFile} ${schemaFile} ${sidebarFile}`,
+    { stdio: "ignore" },
+  );
+} catch {
+  // Best-effort: never fail generation just because formatting did.
 }
 
 console.log(`✔ Created resource "${name}"`);

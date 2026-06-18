@@ -2,10 +2,7 @@ import { createLink } from "@tanstack/react-router";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
-const StyledLink = createLink((props: ComponentProps<"a">) => (
-  // biome-ignore lint/a11y/useAnchorContent: content is provided by children
-  <a {...props} />
-));
+const StyledLink = createLink((props: ComponentProps<"a">) => <a {...props} />);
 
 /**
  * Inline text link styled to match the design system, wired to the
