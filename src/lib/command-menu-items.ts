@@ -1,5 +1,3 @@
-import type { KbdKey } from "@heroui/kbd";
-
 import {
   BellIcon,
   MoonIcon,
@@ -14,7 +12,7 @@ export type CommandMenuIcon = ComponentType<{
 }>;
 
 export type CommandMenuShortcut = {
-  keys: KbdKey[];
+  keys: string[];
   label: string;
 };
 
@@ -67,7 +65,7 @@ export const commandMenuGroups: CommandMenuGroupConfig[] = [
         icon: MoonIcon,
         action: "toggleTheme",
         shortcut: {
-          keys: ["command"] as KbdKey[],
+          keys: ["command"],
           label: "T",
         },
       },

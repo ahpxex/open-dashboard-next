@@ -1,6 +1,7 @@
 "use client";
 
-import { Chip } from "@heroui/react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export type ChipColor =
   | "success"
@@ -9,6 +10,17 @@ export type ChipColor =
   | "primary"
   | "secondary"
   | "default";
+
+const colorClasses: Record<ChipColor, string> = {
+  success:
+    "border-transparent bg-green-500/15 text-green-700 dark:text-green-400",
+  warning:
+    "border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  danger: "border-transparent bg-destructive/15 text-destructive",
+  primary: "border-transparent bg-primary/15 text-primary",
+  secondary: "border-transparent bg-secondary text-secondary-foreground",
+  default: "border-transparent bg-muted text-muted-foreground",
+};
 
 export interface StatusChipProps<T extends string> {
   status: T;
@@ -23,6 +35,7 @@ export interface StatusChipProps<T extends string> {
     | "shadow"
     | "light"
     | "dot";
+  className?: string;
 }
 
 /**
@@ -41,16 +54,15 @@ export function StatusChip<T extends string>({
   status,
   colorMap,
   labelMap,
-  size = "sm",
-  variant = "flat",
+  className,
 }: StatusChipProps<T>) {
   const color = colorMap[status] ?? "default";
   const label = labelMap?.[status] ?? formatStatus(status);
 
   return (
-    <Chip color={color} size={size} variant={variant}>
+    <Badge variant="outline" className={cn(colorClasses[color], className)}>
       {label}
-    </Chip>
+    </Badge>
   );
 }
 

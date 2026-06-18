@@ -1,86 +1,89 @@
 "use client";
 
+import { SquaresFourIcon } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar";
 import {
   bottomMenuItems,
   type MenuItem,
   mainMenuItems,
 } from "@/lib/sidebar-items";
 
-interface SidebarProps {
-  isOpen?: boolean;
-}
+// Strong, sharp active state that matches the app's primary colour and stays
+// solid on hover (overrides the design-system's subtle accent active style).
+const ACTIVE_CLASSES =
+  "data-active:bg-primary data-active:font-medium data-active:text-primary-foreground data-active:hover:bg-primary data-active:hover:text-primary-foreground";
 
-export function Sidebar({ isOpen = true }: SidebarProps) {
+export function AppSidebar() {
   const pathname = usePathname();
 
-  const renderItem = (item: MenuItem) => {
+  const renderMenuItem = (item: MenuItem) => {
     const Icon = item.icon;
-    const isSelected = pathname === item.href;
+    const isActive = pathname === item.href;
 
     return (
-      <Link
-        key={item.label}
-        href={item.href}
-        className={`
-          flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-          ${
-            isSelected
-              ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-              : "hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
-          }
-        `}
-      >
-        <Icon
-          size={20}
-          weight={isSelected ? "fill" : "regular"}
-          className={
-            isSelected
-              ? "text-primary-foreground"
-              : "text-gray-600 dark:text-gray-400"
+      <SidebarMenuItem key={item.label}>
+        <SidebarMenuButton
+          isActive={isActive}
+          tooltip={item.label}
+          className={ACTIVE_CLASSES}
+          render={
+            <Link href={item.href}>
+              <Icon weight={isActive ? "fill" : "regular"} />
+              <span>{item.label}</span>
+            </Link>
           }
         />
-        <span className="font-medium">{item.label}</span>
-      </Link>
+      </SidebarMenuItem>
     );
   };
 
   return (
-    <aside
-      className={`${
-        isOpen ? "w-64" : "w-0"
-      } bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 overflow-hidden`}
-    >
-      <div className="flex h-full flex-col p-6">
-        <h2 className="text-2xl text-center font-bold mb-8 bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
-          The System
-        </h2>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="h-16 justify-center border-b border-sidebar-border">
+        <div className="flex items-center gap-2.5">
+          <div className="grid size-8 shrink-0 place-items-center bg-primary text-primary-foreground">
+            <SquaresFourIcon size={18} weight="fill" />
+          </div>
+          <span className="truncate text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+            The System
+          </span>
+        </div>
+      </SidebarHeader>
 
-        <nav className="flex flex-col gap-1 space-y-2 flex-1 overflow-y-auto pr-2 -mr-2">
-          {mainMenuItems.map((group, groupIndex) => (
-            <div key={groupIndex}>
-              {group.groupLabel && (
-                <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {group.groupLabel}
-                </div>
-              )}
-              <div className="flex flex-col gap-1">
-                {group.items.map((item) => renderItem(item))}
-              </div>
-              {groupIndex < mainMenuItems.length - 1 && (
-                <div className="my-2 border-t border-gray-200 dark:border-gray-800" />
-              )}
-            </div>
-          ))}
-        </nav>
+      <SidebarContent>
+        {mainMenuItems.map((group, groupIndex) => (
+          <SidebarGroup key={group.groupLabel ?? `group-${groupIndex}`}>
+            {group.groupLabel && (
+              <SidebarGroupLabel>{group.groupLabel}</SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>{group.items.map(renderMenuItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
 
-        {bottomMenuItems.length > 0 && (
-          <nav className="mt-auto pt-5 border-t border-gray-200 dark:border-gray-800 flex flex-col gap-1">
-            {bottomMenuItems.map((item) => renderItem(item))}
-          </nav>
-        )}
-      </div>
-    </aside>
+      {bottomMenuItems.length > 0 && (
+        <SidebarFooter className="border-t border-sidebar-border">
+          <SidebarMenu>{bottomMenuItems.map(renderMenuItem)}</SidebarMenu>
+        </SidebarFooter>
+      )}
+
+      <SidebarRail />
+    </Sidebar>
   );
 }

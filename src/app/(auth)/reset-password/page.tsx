@@ -1,10 +1,12 @@
 "use client";
 
-import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
-import { Input } from "@heroui/input";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -44,19 +46,17 @@ export default function ResetPasswordPage() {
           <h1 className="text-4xl font-bold">Password Reset Success</h1>
         </div>
         <Card className="w-full max-w-md">
-          <CardBody className="text-center py-8">
+          <CardContent className="text-center py-8">
             <div className="text-5xl mb-4">✓</div>
             <h3 className="text-xl font-semibold mb-2">
               Password successfully reset
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Your password has been successfully reset. You can now sign in
               with your new password.
             </p>
-            <Button color="primary" onPress={() => router.push("/login")}>
-              Go to Sign In
-            </Button>
-          </CardBody>
+            <Button onClick={() => router.push("/login")}>Go to Sign In</Button>
+          </CardContent>
         </Card>
       </>
     );
@@ -66,53 +66,55 @@ export default function ResetPasswordPage() {
     <>
       <div className="flex flex-col space-y-2 justify-center items-center">
         <h1 className="text-4xl font-bold">Reset Password</h1>
-        <p className="text-gray-600">Please enter your new password below.</p>
+        <p className="text-muted-foreground">
+          Please enter your new password below.
+        </p>
       </div>
       <Card className="w-full max-w-md">
-        <CardBody className="space-y-4">
+        <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              isRequired
-              type="password"
+            <Field
               label="New Password"
-              placeholder="Enter new password"
-              variant="underlined"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              isInvalid={password.length > 0 && passwordErrors.length > 0}
-              errorMessage={
-                password.length > 0 &&
-                passwordErrors.length > 0 && (
+              required
+              error={
+                password.length > 0 && passwordErrors.length > 0 ? (
                   <ul className="list-disc list-inside">
                     {passwordErrors.map((err, i) => (
                       <li key={i}>{err}</li>
                     ))}
                   </ul>
-                )
+                ) : undefined
               }
-            />
-            <Input
-              isRequired
-              type="password"
+            >
+              <Input
+                required
+                type="password"
+                placeholder="Enter new password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </Field>
+            <Field
               label="Confirm New Password"
-              placeholder="Confirm new password"
-              variant="underlined"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              isInvalid={
-                confirmPassword.length > 0 && password !== confirmPassword
-              }
-              errorMessage={
+              required
+              error={
                 confirmPassword.length > 0 && password !== confirmPassword
                   ? "Passwords do not match"
-                  : ""
+                  : undefined
               }
-            />
+            >
+              <Input
+                required
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </Field>
             <Button
               type="submit"
-              color="primary"
-              isLoading={isLoading}
-              isDisabled={
+              disabled={
+                isLoading ||
                 !password ||
                 !confirmPassword ||
                 password !== confirmPassword ||
@@ -120,10 +122,11 @@ export default function ResetPasswordPage() {
               }
               className="w-full"
             >
+              {isLoading ? <Spinner /> : null}
               Reset Password
             </Button>
           </form>
-        </CardBody>
+        </CardContent>
       </Card>
     </>
   );

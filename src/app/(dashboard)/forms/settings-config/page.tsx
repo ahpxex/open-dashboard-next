@@ -1,19 +1,20 @@
 "use client";
 
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Input,
-  Radio,
-  RadioGroup,
-  Select,
-  SelectItem,
-  Tab,
-  Tabs,
-} from "@heroui/react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SettingsConfigFormsPage() {
   return (
@@ -26,13 +27,17 @@ export default function SettingsConfigFormsPage() {
         </p>
       </div>
 
-      <Tabs aria-label="Settings & Configuration forms">
-        <Tab key="workspace" title="Workspace Settings">
+      <Tabs defaultValue="workspace">
+        <TabsList>
+          <TabsTrigger value="workspace">Workspace Settings</TabsTrigger>
+          <TabsTrigger value="billing">Billing & Subscription</TabsTrigger>
+        </TabsList>
+        <TabsContent value="workspace">
           <WorkspaceSettingsForm />
-        </Tab>
-        <Tab key="billing" title="Billing & Subscription">
+        </TabsContent>
+        <TabsContent value="billing">
           <BillingSubscriptionForm />
-        </Tab>
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -104,99 +109,126 @@ function WorkspaceSettingsForm() {
       <CardHeader>
         <h2 className="text-xl font-semibold">General Settings</h2>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Input
-            isRequired
+          <Field
             label="Workspace Name"
-            placeholder="Enter workspace name"
-            value={workspaceName}
-            onValueChange={setWorkspaceName}
+            required
             description="This is the name that will be displayed to your team members"
-          />
+          >
+            <Input
+              required
+              placeholder="Enter workspace name"
+              value={workspaceName}
+              onChange={(e) => setWorkspaceName(e.target.value)}
+            />
+          </Field>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
-              isRequired
-              label="Timezone"
-              placeholder="Select timezone"
-              selectedKeys={timezone ? [timezone] : []}
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0] as string;
-                setTimezone(value);
-              }}
-            >
-              {timezones.map((tz) => (
-                <SelectItem key={tz.key}>{tz.label}</SelectItem>
-              ))}
-            </Select>
+            <Field label="Timezone" required>
+              <Select
+                value={timezone}
+                onValueChange={(value) => setTimezone(value ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timezones.map((tz) => (
+                    <SelectItem key={tz.key} value={tz.key}>
+                      {tz.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
-            <Select
-              isRequired
-              label="Currency"
-              placeholder="Select currency"
-              selectedKeys={currency ? [currency] : []}
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0] as string;
-                setCurrency(value);
-              }}
-            >
-              {currencies.map((curr) => (
-                <SelectItem key={curr.key}>{curr.label}</SelectItem>
-              ))}
-            </Select>
+            <Field label="Currency" required>
+              <Select
+                value={currency}
+                onValueChange={(value) => setCurrency(value ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((curr) => (
+                    <SelectItem key={curr.key} value={curr.key}>
+                      {curr.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
-            <Select
-              isRequired
-              label="Language"
-              placeholder="Select language"
-              selectedKeys={language ? [language] : []}
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0] as string;
-                setLanguage(value);
-              }}
-            >
-              {languages.map((lang) => (
-                <SelectItem key={lang.key}>{lang.label}</SelectItem>
-              ))}
-            </Select>
+            <Field label="Language" required>
+              <Select
+                value={language}
+                onValueChange={(value) => setLanguage(value ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages.map((lang) => (
+                    <SelectItem key={lang.key} value={lang.key}>
+                      {lang.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <RadioGroup
-              label="Date Format"
-              value={dateFormat}
-              onValueChange={setDateFormat}
-            >
-              <Radio value="MM/DD/YYYY">MM/DD/YYYY (02/10/2025)</Radio>
-              <Radio value="DD/MM/YYYY">DD/MM/YYYY (10/02/2025)</Radio>
-              <Radio value="YYYY-MM-DD">YYYY-MM-DD (2025-02-10)</Radio>
-            </RadioGroup>
+            <Field label="Date Format">
+              <RadioGroup value={dateFormat} onValueChange={setDateFormat}>
+                <label className="flex items-center gap-2 text-xs">
+                  <RadioGroupItem value="MM/DD/YYYY" />
+                  <span>MM/DD/YYYY (02/10/2025)</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs">
+                  <RadioGroupItem value="DD/MM/YYYY" />
+                  <span>DD/MM/YYYY (10/02/2025)</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs">
+                  <RadioGroupItem value="YYYY-MM-DD" />
+                  <span>YYYY-MM-DD (2025-02-10)</span>
+                </label>
+              </RadioGroup>
+            </Field>
 
-            <RadioGroup
-              label="Time Format"
-              value={timeFormat}
-              onValueChange={setTimeFormat}
-            >
-              <Radio value="12h">12-hour (2:30 PM)</Radio>
-              <Radio value="24h">24-hour (14:30)</Radio>
-            </RadioGroup>
+            <Field label="Time Format">
+              <RadioGroup value={timeFormat} onValueChange={setTimeFormat}>
+                <label className="flex items-center gap-2 text-xs">
+                  <RadioGroupItem value="12h" />
+                  <span>12-hour (2:30 PM)</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs">
+                  <RadioGroupItem value="24h" />
+                  <span>24-hour (14:30)</span>
+                </label>
+              </RadioGroup>
+            </Field>
           </div>
 
           {isSaved && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-none text-green-700 text-sm">
               Workspace settings saved successfully!
             </div>
           )}
 
           <div className="flex gap-3 justify-end">
-            <Button variant="bordered">Reset to Defaults</Button>
-            <Button type="submit" color="primary" isLoading={isLoading}>
+            <Button variant="outline" type="button">
+              Reset to Defaults
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Spinner /> : null}
               Save Changes
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -274,7 +306,7 @@ function BillingSubscriptionForm() {
       <CardHeader>
         <h2 className="text-xl font-semibold">Billing & Subscription</h2>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <h3 className="text-lg font-medium mb-4">Select Plan</h3>
@@ -284,7 +316,11 @@ function BillingSubscriptionForm() {
               className="space-y-3"
             >
               {plans.map((plan) => (
-                <Radio key={plan.key} value={plan.key}>
+                <label
+                  key={plan.key}
+                  className="flex items-center gap-3 cursor-pointer"
+                >
+                  <RadioGroupItem value={plan.key} />
                   <div className="flex justify-between items-start w-full">
                     <div>
                       <p className="font-medium">{plan.name}</p>
@@ -297,7 +333,7 @@ function BillingSubscriptionForm() {
                       {plan.price !== "Custom" && "/month"}
                     </p>
                   </div>
-                </Radio>
+                </label>
               ))}
             </RadioGroup>
           </div>
@@ -307,38 +343,42 @@ function BillingSubscriptionForm() {
               <div className="border-t pt-6">
                 <h3 className="text-lg font-medium mb-4">Payment Method</h3>
                 <div className="space-y-4">
-                  <Input
-                    isRequired
-                    label="Card Number"
-                    placeholder="1234 5678 9012 3456"
-                    value={cardNumber}
-                    onValueChange={setCardNumber}
-                    maxLength={19}
-                  />
+                  <Field label="Card Number" required>
+                    <Input
+                      required
+                      placeholder="1234 5678 9012 3456"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(e.target.value)}
+                      maxLength={19}
+                    />
+                  </Field>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input
-                      isRequired
-                      label="Expiry Date"
-                      placeholder="MM/YY"
-                      value={cardExpiry}
-                      onValueChange={setCardExpiry}
-                      maxLength={5}
-                    />
-                    <Input
-                      isRequired
-                      label="CVC"
-                      placeholder="123"
-                      value={cardCvc}
-                      onValueChange={setCardCvc}
-                      maxLength={4}
-                    />
-                    <Input
-                      isRequired
-                      label="Cardholder Name"
-                      placeholder="John Doe"
-                      value={cardName}
-                      onValueChange={setCardName}
-                    />
+                    <Field label="Expiry Date" required>
+                      <Input
+                        required
+                        placeholder="MM/YY"
+                        value={cardExpiry}
+                        onChange={(e) => setCardExpiry(e.target.value)}
+                        maxLength={5}
+                      />
+                    </Field>
+                    <Field label="CVC" required>
+                      <Input
+                        required
+                        placeholder="123"
+                        value={cardCvc}
+                        onChange={(e) => setCardCvc(e.target.value)}
+                        maxLength={4}
+                      />
+                    </Field>
+                    <Field label="Cardholder Name" required>
+                      <Input
+                        required
+                        placeholder="John Doe"
+                        value={cardName}
+                        onChange={(e) => setCardName(e.target.value)}
+                      />
+                    </Field>
                   </div>
                 </div>
               </div>
@@ -346,49 +386,55 @@ function BillingSubscriptionForm() {
               <div className="border-t pt-6">
                 <h3 className="text-lg font-medium mb-4">Billing Address</h3>
                 <div className="space-y-4">
-                  <Input
-                    isRequired
-                    label="Street Address"
-                    placeholder="123 Main St"
-                    value={billingAddress}
-                    onValueChange={setBillingAddress}
-                  />
+                  <Field label="Street Address" required>
+                    <Input
+                      required
+                      placeholder="123 Main St"
+                      value={billingAddress}
+                      onChange={(e) => setBillingAddress(e.target.value)}
+                    />
+                  </Field>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Input
-                      isRequired
-                      label="City"
-                      placeholder="New York"
-                      value={billingCity}
-                      onValueChange={setBillingCity}
-                    />
-                    <Input
-                      isRequired
-                      label="ZIP / Postal Code"
-                      placeholder="10001"
-                      value={billingZip}
-                      onValueChange={setBillingZip}
-                    />
-                    <Select
-                      isRequired
-                      label="Country"
-                      placeholder="Select country"
-                      selectedKeys={billingCountry ? [billingCountry] : []}
-                      onSelectionChange={(keys) => {
-                        const value = Array.from(keys)[0] as string;
-                        setBillingCountry(value);
-                      }}
-                    >
-                      {countries.map((country) => (
-                        <SelectItem key={country.key}>
-                          {country.label}
-                        </SelectItem>
-                      ))}
-                    </Select>
+                    <Field label="City" required>
+                      <Input
+                        required
+                        placeholder="New York"
+                        value={billingCity}
+                        onChange={(e) => setBillingCity(e.target.value)}
+                      />
+                    </Field>
+                    <Field label="ZIP / Postal Code" required>
+                      <Input
+                        required
+                        placeholder="10001"
+                        value={billingZip}
+                        onChange={(e) => setBillingZip(e.target.value)}
+                      />
+                    </Field>
+                    <Field label="Country" required>
+                      <Select
+                        value={billingCountry}
+                        onValueChange={(value) =>
+                          setBillingCountry(value ?? "")
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem key={country.key} value={country.key}>
+                              {country.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-none">
                 <p className="text-sm text-blue-900">
                   <strong>Note:</strong> Your payment information is securely
                   processed through Stripe. We never store your complete card
@@ -399,21 +445,24 @@ function BillingSubscriptionForm() {
           )}
 
           {isSaved && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-none text-green-700 text-sm">
               Billing information saved successfully!
             </div>
           )}
 
           <div className="flex gap-3 justify-end">
-            <Button variant="bordered">Cancel</Button>
-            <Button type="submit" color="primary" isLoading={isLoading}>
+            <Button variant="outline" type="button">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Spinner /> : null}
               {selectedPlan === "free"
                 ? "Downgrade to Free"
                 : "Update Subscription"}
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

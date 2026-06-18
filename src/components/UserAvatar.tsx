@@ -1,16 +1,6 @@
 "use client";
 
 import {
-  Avatar,
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownSection,
-  DropdownTrigger,
-  Spinner,
-} from "@heroui/react";
-import {
   BellIcon,
   GearIcon,
   MoonIcon,
@@ -19,9 +9,30 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { useGetIdentity, useLogout } from "@refinedev/core";
 import { useRouter } from "next/navigation";
-import type { Key } from "react";
 import { useEffect, useMemo, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import type { SessionUser } from "@/lib/auth/session";
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export function UserAvatar() {
   const router = useRouter();
@@ -46,7 +57,7 @@ export function UserAvatar() {
 
   const avatarSrc = undefined;
 
-  const handleAction = async (key: Key) => {
+  const handleAction = async (key: string) => {
     switch (key) {
       case "profile":
         router.push("/profile");
@@ -86,80 +97,83 @@ export function UserAvatar() {
   };
 
   return (
-    <Dropdown placement="bottom-end">
-      <DropdownTrigger>
-        <Button
-          variant="light"
-          radius="full"
-          endContent={
-            isIdentityLoading ? (
-              <Spinner size="sm" />
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" className="h-auto gap-2 rounded-none py-1">
+            <span className="hidden text-sm font-medium text-foreground sm:inline">
+              {displayName}
+            </span>
+            {isIdentityLoading ? (
+              <Spinner />
             ) : (
-              <Avatar
-                className="transition-transform"
-                color="primary"
-                name={displayName}
-                size="sm"
-                src={avatarSrc}
-              />
-            )
-          }
+              <Avatar size="sm">
+                <AvatarImage src={avatarSrc} alt={displayName} />
+                <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
+              </Avatar>
+            )}
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Account</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => handleAction("profile")}>
+            <UserIcon size={18} />
+            <div className="flex flex-col">
+              <span>Profile</span>
+              <span className="text-xs text-muted-foreground">
+                View your profile
+              </span>
+            </div>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAction("settings")}>
+            <GearIcon size={18} />
+            <div className="flex flex-col">
+              <span>Settings</span>
+              <span className="text-xs text-muted-foreground">
+                Manage your settings
+              </span>
+            </div>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAction("notifications")}>
+            <BellIcon size={18} />
+            <div className="flex flex-col">
+              <span>Notifications</span>
+              <span className="text-xs text-muted-foreground">
+                View notifications
+              </span>
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Preferences</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => handleAction("theme")}>
+            <MoonIcon size={18} />
+            <div className="flex flex-col">
+              <span>Theme</span>
+              <span className="text-xs text-muted-foreground">
+                Toggle dark mode
+              </span>
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          variant="destructive"
+          disabled={isSigningOut}
+          onClick={() => handleAction("logout")}
         >
-          <span className="hidden text-sm font-medium text-gray-700 dark:text-gray-200 sm:inline">
-            {displayName}
-          </span>
-        </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="User Actions"
-        onAction={handleAction}
-        variant="flat"
-      >
-        <DropdownSection title="Account" showDivider>
-          <DropdownItem
-            key="profile"
-            description="View your profile"
-            startContent={<UserIcon size={20} />}
-          >
-            Profile
-          </DropdownItem>
-          <DropdownItem
-            key="settings"
-            description="Manage your settings"
-            startContent={<GearIcon size={20} />}
-          >
-            Settings
-          </DropdownItem>
-          <DropdownItem
-            key="notifications"
-            description="View notifications"
-            startContent={<BellIcon size={20} />}
-          >
-            Notifications
-          </DropdownItem>
-        </DropdownSection>
-        <DropdownSection title="Preferences" showDivider>
-          <DropdownItem
-            key="theme"
-            description="Toggle dark mode"
-            startContent={<MoonIcon size={20} />}
-          >
-            Theme
-          </DropdownItem>
-        </DropdownSection>
-        <DropdownSection>
-          <DropdownItem
-            key="logout"
-            className="text-danger"
-            color="danger"
-            description="Sign out of your account"
-            startContent={<SignOutIcon size={20} />}
-            isDisabled={isSigningOut}
-          >
-            Logout
-          </DropdownItem>
-        </DropdownSection>
-      </DropdownMenu>
-    </Dropdown>
+          <SignOutIcon size={18} />
+          <div className="flex flex-col">
+            <span>Logout</span>
+            <span className="text-xs text-muted-foreground">
+              Sign out of your account
+            </span>
+          </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

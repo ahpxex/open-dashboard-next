@@ -1,15 +1,15 @@
-import { heroui } from "@heroui/react";
+import type { Config } from "tailwindcss";
 
-/** @type {import('tailwindcss').Config} */
+/**
+ * Tailwind CSS v4 is configured primarily through `src/app/globals.css`
+ * (`@import "tailwindcss"` + `@theme`). This file is kept minimal for tooling
+ * that still expects a config module.
+ */
 export default {
-  content: [
-    // ...
-    // make sure it's pointing to the ROOT node_module
-    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  darkMode: "class",
   theme: {
     extend: {},
   },
-  darkMode: "class",
-  plugins: [heroui()],
-};
+  plugins: [],
+} satisfies Config;

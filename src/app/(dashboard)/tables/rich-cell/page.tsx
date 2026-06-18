@@ -1,8 +1,9 @@
 "use client";
 
-import { Button, Spinner, useDisclosure } from "@heroui/react";
 import { Plus } from "@phosphor-icons/react";
 import { Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { createTasksConfig, type Task, tasksMeta } from "@/examples/tasks";
 import {
   PaginationTable,
@@ -12,15 +13,10 @@ import {
 
 export default function RichCellPage() {
   const tableRef = useRef<PaginationTableRef>(null);
-  const { onOpen } = useDisclosure();
 
-  const handleEdit = useCallback(
-    (task: Task) => {
-      console.log("Editing task:", task);
-      onOpen();
-    },
-    [onOpen],
-  );
+  const handleEdit = useCallback((task: Task) => {
+    console.log("Editing task:", task);
+  }, []);
 
   const handleDelete = useCallback((id: string) => {
     if (confirm("Are you sure you want to delete this task?")) {
@@ -31,8 +27,7 @@ export default function RichCellPage() {
 
   const handleAddTask = useCallback(() => {
     console.log("Adding new task");
-    onOpen();
-  }, [onOpen]);
+  }, []);
 
   const [totalCount, setTotalCount] = useState(0);
   const config = useMemo(
@@ -51,11 +46,8 @@ export default function RichCellPage() {
         tasksMeta.description ? " " : ""
       }Total tasks: ${totalCount}`}
       actions={
-        <Button
-          color="primary"
-          startContent={<Plus size={18} weight="bold" />}
-          onPress={handleAddTask}
-        >
+        <Button onClick={handleAddTask}>
+          <Plus size={18} weight="bold" />
           Add Task
         </Button>
       }

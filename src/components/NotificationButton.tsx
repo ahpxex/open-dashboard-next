@@ -1,7 +1,12 @@
 "use client";
 
-import { Button, Popover, PopoverContent, PopoverTrigger } from "@heroui/react";
 import { BellIcon } from "@phosphor-icons/react/dist/ssr";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const NOTIFICATIONS = [
   {
@@ -26,42 +31,40 @@ const NOTIFICATIONS = [
 
 export function NotificationButton() {
   return (
-    <Popover placement="bottom-end" offset={8}>
-      <PopoverTrigger>
-        <Button
-          isIconOnly
-          variant="light"
-          radius="full"
-          aria-label="Open notifications"
-        >
-          <BellIcon size={22} className="text-gray-500 dark:text-gray-400" />
-          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-500 px-1 text-[10px] font-semibold text-white">
-            3
-          </span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0">
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative rounded-none"
+            aria-label="Open notifications"
+          >
+            <BellIcon size={22} className="size-5 text-muted-foreground" />
+            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-none bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+              3
+            </span>
+          </Button>
+        }
+      />
+      <PopoverContent align="end" sideOffset={8} className="w-80 p-0">
         <div className="flex items-center justify-between px-4 py-3 space-x-2">
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-            Notifications
-          </p>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            3 new
-          </span>
+          <p className="text-sm font-semibold text-foreground">Notifications</p>
+          <span className="text-xs text-muted-foreground">3 new</span>
         </div>
-        <div className="space-y-2 border-t border-gray-100 px-4 py-3 dark:border-gray-800">
+        <div className="space-y-2 border-t border-border px-4 py-3">
           {NOTIFICATIONS.map((notification) => (
             <div
               key={notification.id}
-              className="rounded-lg border border-gray-100 bg-white p-3 text-left transition-colors hover:border-primary-200 dark:border-gray-800 dark:bg-gray-950 dark:hover:border-primary-500/40"
+              className="rounded-none border border-border bg-card p-3 text-left transition-colors hover:border-primary/40"
             >
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+              <p className="text-sm font-medium text-foreground">
                 {notification.title}
               </p>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {notification.description}
               </p>
-              <span className="mt-2 block text-[11px] font-medium uppercase tracking-wide text-primary-500">
+              <span className="mt-2 block text-[11px] font-medium uppercase tracking-wide text-primary">
                 {notification.time}
               </span>
             </div>

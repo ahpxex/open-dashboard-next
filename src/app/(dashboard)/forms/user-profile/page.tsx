@@ -1,18 +1,15 @@
 "use client";
 
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Input,
-  Switch,
-  Tab,
-  Tabs,
-  Textarea,
-} from "@heroui/react";
 import Image from "next/image";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function UserProfileFormsPage() {
   return (
@@ -25,16 +22,21 @@ export default function UserProfileFormsPage() {
         </p>
       </div>
 
-      <Tabs aria-label="User & Profile forms">
-        <Tab key="profile" title="User Profile">
+      <Tabs defaultValue="profile">
+        <TabsList>
+          <TabsTrigger value="profile">User Profile</TabsTrigger>
+          <TabsTrigger value="password">Change Password</TabsTrigger>
+          <TabsTrigger value="notifications">Notification Settings</TabsTrigger>
+        </TabsList>
+        <TabsContent value="profile">
           <UserProfileForm />
-        </Tab>
-        <Tab key="password" title="Change Password">
+        </TabsContent>
+        <TabsContent value="password">
           <ChangePasswordForm />
-        </Tab>
-        <Tab key="notifications" title="Notification Settings">
+        </TabsContent>
+        <TabsContent value="notifications">
           <NotificationSettingsForm />
-        </Tab>
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -88,11 +90,11 @@ function UserProfileForm() {
       <CardHeader>
         <h2 className="text-xl font-semibold">Edit Profile</h2>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="mb-6 flex flex-col items-center">
             <div className="relative">
-              <div className="relative mb-3 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gray-200">
+              <div className="relative mb-3 flex h-24 w-24 items-center justify-center overflow-hidden rounded-none bg-gray-200">
                 {profileImage ? (
                   <Image
                     src={profileImage}
@@ -118,9 +120,10 @@ function UserProfileForm() {
               />
               <label htmlFor="profile-image">
                 <Button
-                  as="span"
+                  render={<span />}
+                  nativeButton={false}
                   size="sm"
-                  variant="bordered"
+                  variant="outline"
                   className="cursor-pointer"
                 >
                   Change Photo
@@ -130,65 +133,74 @@ function UserProfileForm() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              isRequired
-              label="First Name"
-              placeholder="Enter first name"
-              value={firstName}
-              onValueChange={setFirstName}
-            />
-            <Input
-              isRequired
-              label="Last Name"
-              placeholder="Enter last name"
-              value={lastName}
-              onValueChange={setLastName}
-            />
+            <Field label="First Name" required>
+              <Input
+                required
+                placeholder="Enter first name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </Field>
+            <Field label="Last Name" required>
+              <Input
+                required
+                placeholder="Enter last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </Field>
           </div>
 
-          <Input
-            isRequired
-            type="email"
+          <Field
             label="Email"
-            placeholder="Enter email"
-            value={email}
-            onValueChange={setEmail}
-            isReadOnly
+            required
             description="Email cannot be changed. Contact support if you need to update it."
-          />
+          >
+            <Input
+              required
+              type="email"
+              placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              readOnly
+            />
+          </Field>
 
-          <Input
-            label="Phone Number"
-            placeholder="Enter phone number"
-            value={phone}
-            onValueChange={setPhone}
-          />
+          <Field label="Phone Number">
+            <Input
+              placeholder="Enter phone number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </Field>
 
-          <Textarea
-            label="Bio"
-            placeholder="Tell us about yourself"
-            value={bio}
-            onValueChange={setBio}
-            minRows={4}
-            maxRows={8}
-            description={`${bio.length}/500 characters`}
-            maxLength={500}
-          />
+          <Field label="Bio" description={`${bio.length}/500 characters`}>
+            <Textarea
+              placeholder="Tell us about yourself"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={4}
+              maxLength={500}
+            />
+          </Field>
 
           {isSaved && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-none text-green-700 text-sm">
               Profile updated successfully!
             </div>
           )}
 
           <div className="flex gap-3 justify-end">
-            <Button variant="bordered">Cancel</Button>
-            <Button type="submit" color="primary" isLoading={isLoading}>
+            <Button variant="outline" type="button">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Spinner /> : null}
               Save Changes
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -253,80 +265,84 @@ function ChangePasswordForm() {
       <CardHeader>
         <h2 className="text-xl font-semibold">Change Password</h2>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <p className="text-sm text-gray-600 mb-4">
             For security, you must enter your current password to change it.
           </p>
 
-          <Input
-            isRequired
-            type="password"
-            label="Current Password"
-            placeholder="Enter current password"
-            value={currentPassword}
-            onValueChange={setCurrentPassword}
-          />
+          <Field label="Current Password" required>
+            <Input
+              required
+              type="password"
+              placeholder="Enter current password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+          </Field>
 
-          <Input
-            isRequired
-            type="password"
+          <Field
             label="New Password"
-            placeholder="Enter new password"
-            value={newPassword}
-            onValueChange={setNewPassword}
-            isInvalid={newPassword.length > 0 && passwordErrors.length > 0}
-            errorMessage={
-              newPassword.length > 0 &&
-              passwordErrors.length > 0 && (
+            required
+            error={
+              newPassword.length > 0 && passwordErrors.length > 0 ? (
                 <ul className="list-disc list-inside">
-                  {passwordErrors.map((err, i) => (
-                    <li key={i}>{err}</li>
+                  {passwordErrors.map((err) => (
+                    <li key={err}>{err}</li>
                   ))}
                 </ul>
-              )
+              ) : undefined
             }
-          />
+          >
+            <Input
+              required
+              type="password"
+              placeholder="Enter new password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              aria-invalid={newPassword.length > 0 && passwordErrors.length > 0}
+            />
+          </Field>
 
-          <Input
-            isRequired
-            type="password"
+          <Field
             label="Confirm New Password"
-            placeholder="Confirm new password"
-            value={confirmPassword}
-            onValueChange={setConfirmPassword}
-            isInvalid={
-              confirmPassword.length > 0 && newPassword !== confirmPassword
-            }
-            errorMessage={
+            required
+            error={
               confirmPassword.length > 0 && newPassword !== confirmPassword
                 ? "Passwords do not match"
-                : ""
+                : undefined
             }
-          />
+          >
+            <Input
+              required
+              type="password"
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              aria-invalid={
+                confirmPassword.length > 0 && newPassword !== confirmPassword
+              }
+            />
+          </Field>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-none text-red-700 text-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-none text-green-700 text-sm">
               Password changed successfully!
             </div>
           )}
 
-          <Button
-            type="submit"
-            color="primary"
-            isLoading={isLoading}
-            className="w-full"
-          >
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? <Spinner /> : null}
             Change Password
           </Button>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }
@@ -364,13 +380,13 @@ function NotificationSettingsForm() {
       <CardHeader>
         <h2 className="text-xl font-semibold">Notification Preferences</h2>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-medium mb-3">Email Notifications</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-none">
                   <div>
                     <p className="font-medium">Comments</p>
                     <p className="text-sm text-gray-600">
@@ -378,11 +394,11 @@ function NotificationSettingsForm() {
                     </p>
                   </div>
                   <Switch
-                    isSelected={emailComments}
-                    onValueChange={setEmailComments}
+                    checked={emailComments}
+                    onCheckedChange={setEmailComments}
                   />
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-none">
                   <div>
                     <p className="font-medium">Product Updates</p>
                     <p className="text-sm text-gray-600">
@@ -390,11 +406,11 @@ function NotificationSettingsForm() {
                     </p>
                   </div>
                   <Switch
-                    isSelected={emailUpdates}
-                    onValueChange={setEmailUpdates}
+                    checked={emailUpdates}
+                    onCheckedChange={setEmailUpdates}
                   />
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-none">
                   <div>
                     <p className="font-medium">Newsletter</p>
                     <p className="text-sm text-gray-600">
@@ -402,8 +418,8 @@ function NotificationSettingsForm() {
                     </p>
                   </div>
                   <Switch
-                    isSelected={emailNewsletter}
-                    onValueChange={setEmailNewsletter}
+                    checked={emailNewsletter}
+                    onCheckedChange={setEmailNewsletter}
                   />
                 </div>
               </div>
@@ -412,7 +428,7 @@ function NotificationSettingsForm() {
             <div>
               <h3 className="text-lg font-medium mb-3">Push Notifications</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-none">
                   <div>
                     <p className="font-medium">System Alerts</p>
                     <p className="text-sm text-gray-600">
@@ -420,11 +436,11 @@ function NotificationSettingsForm() {
                     </p>
                   </div>
                   <Switch
-                    isSelected={pushSystemAlerts}
-                    onValueChange={setPushSystemAlerts}
+                    checked={pushSystemAlerts}
+                    onCheckedChange={setPushSystemAlerts}
                   />
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-none">
                   <div>
                     <p className="font-medium">Messages</p>
                     <p className="text-sm text-gray-600">
@@ -432,11 +448,11 @@ function NotificationSettingsForm() {
                     </p>
                   </div>
                   <Switch
-                    isSelected={pushMessages}
-                    onValueChange={setPushMessages}
+                    checked={pushMessages}
+                    onCheckedChange={setPushMessages}
                   />
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-none">
                   <div>
                     <p className="font-medium">Activity</p>
                     <p className="text-sm text-gray-600">
@@ -444,8 +460,8 @@ function NotificationSettingsForm() {
                     </p>
                   </div>
                   <Switch
-                    isSelected={pushActivity}
-                    onValueChange={setPushActivity}
+                    checked={pushActivity}
+                    onCheckedChange={setPushActivity}
                   />
                 </div>
               </div>
@@ -454,33 +470,36 @@ function NotificationSettingsForm() {
             <div>
               <h3 className="text-lg font-medium mb-3">SMS Notifications</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-none">
                   <div>
                     <p className="font-medium">Critical Alerts</p>
                     <p className="text-sm text-gray-600">
                       Receive text messages for critical alerts only
                     </p>
                   </div>
-                  <Switch isSelected={smsAlerts} onValueChange={setSmsAlerts} />
+                  <Switch checked={smsAlerts} onCheckedChange={setSmsAlerts} />
                 </div>
               </div>
             </div>
           </div>
 
           {isSaved && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+            <div className="p-3 bg-green-50 border border-green-200 rounded-none text-green-700 text-sm">
               Notification settings saved successfully!
             </div>
           )}
 
           <div className="flex gap-3 justify-end">
-            <Button variant="bordered">Reset to Defaults</Button>
-            <Button type="submit" color="primary" isLoading={isLoading}>
+            <Button variant="outline" type="button">
+              Reset to Defaults
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? <Spinner /> : null}
               Save Preferences
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

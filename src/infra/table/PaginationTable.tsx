@@ -1,6 +1,5 @@
 "use client";
 
-import { Checkbox, Spinner } from "@heroui/react";
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import {
   type BaseRecord,
@@ -23,6 +22,8 @@ import {
   useMemo,
   useState,
 } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 import { TablePaginationControls } from "./TablePaginationControls";
 import { TableToolbar } from "./TableToolbar";
 import type { PaginationTableProps, PaginationTableRef } from "./types";
@@ -307,7 +308,7 @@ function PaginationTableInner<TData extends BaseRecord>(
         isLoading={isLoading}
       />
 
-      <div className="relative flex-1 overflow-auto rounded-xl border border-gray-200 dark:border-gray-800">
+      <div className="relative flex-1 overflow-auto rounded-none border border-gray-200 dark:border-gray-800">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
             <Spinner />
@@ -324,15 +325,15 @@ function PaginationTableInner<TData extends BaseRecord>(
                   {isSelectable ? (
                     <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       <Checkbox
-                        isSelected={
+                        checked={
                           selectedKeys.size > 0 &&
                           selectedKeys.size === validRowIds.size
                         }
-                        isIndeterminate={
+                        indeterminate={
                           selectedKeys.size > 0 &&
                           selectedKeys.size < validRowIds.size
                         }
-                        onValueChange={(value) => {
+                        onCheckedChange={(value) => {
                           if (value) {
                             updateSelection(() => new Set(validRowIds));
                           } else {
@@ -406,8 +407,8 @@ function PaginationTableInner<TData extends BaseRecord>(
                     {isSelectable ? (
                       <td className="px-4 py-3">
                         <Checkbox
-                          isSelected={isSelected}
-                          onValueChange={(value) => {
+                          checked={isSelected}
+                          onCheckedChange={(value) => {
                             if (value) {
                               updateSelection((previous) =>
                                 new Set(previous).add(rowId),

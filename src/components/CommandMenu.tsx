@@ -1,24 +1,21 @@
 "use client";
 
-import type { KbdKey } from "@heroui/kbd";
-import { Kbd } from "@heroui/react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/ssr";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { Kbd } from "@/components/ui/kbd";
 import {
   type CommandMenuItemConfig,
   commandMenuGroups,
 } from "@/lib/command-menu-items";
 import { bottomMenuItems, mainMenuItems } from "@/lib/sidebar-items";
 
-const ESCAPE_KEYS: KbdKey[] = ["escape"];
-const COMMAND_KEYS: KbdKey[] = ["command"];
 const GROUP_BASE_CLASS =
   "[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-gray-500 dark:[&_[cmdk-group-heading]]:text-gray-400";
 const BASE_ITEM_CLASSES =
-  "relative flex cursor-pointer select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50";
+  "relative flex cursor-pointer select-none items-center rounded-none px-3 py-2.5 text-sm outline-none transition-colors data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50";
 const NEUTRAL_ITEM_CLASSES = `${BASE_ITEM_CLASSES} data-[selected=true]:bg-gray-100 dark:data-[selected=true]:bg-gray-800`;
 const DANGER_ITEM_CLASSES = `${BASE_ITEM_CLASSES} data-[selected=true]:bg-red-50 dark:data-[selected=true]:bg-red-950/20`;
 
@@ -91,7 +88,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
         className="fixed left-[50%] top-[30%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-30%] animate-in fade-in-90 slide-in-from-bottom-10"
       >
         <DialogTitle className="sr-only">Command Menu</DialogTitle>
-        <div className="overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-2xl">
+        <div className="overflow-hidden rounded-none border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-2xl">
           {/* Search Input */}
           <div className="flex items-center border-b border-gray-200 dark:border-gray-800 px-4">
             <MagnifyingGlassIcon
@@ -104,9 +101,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
               placeholder="Type a command or search..."
               className="flex h-14 w-full bg-transparent px-4 text-sm text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none"
             />
-            <Kbd className="hidden sm:inline-flex" keys={ESCAPE_KEYS}>
-              ESC
-            </Kbd>
+            <Kbd className="hidden sm:inline-flex">Esc</Kbd>
           </div>
 
           {/* Command List */}
@@ -185,11 +180,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                         <Icon size={18} className={`mr-3 ${iconColor}`} />
                         <span className={labelClass}>{item.label}</span>
                         {item.shortcut ? (
-                          <Kbd
-                            className="ml-auto hidden sm:inline-flex"
-                            keys={item.shortcut.keys}
-                          >
-                            {item.shortcut.label}
+                          <Kbd className="ml-auto hidden sm:inline-flex">
+                            ⌘{item.shortcut.label}
                           </Kbd>
                         ) : item.description ? (
                           <span className={descriptionClass}>
@@ -211,11 +203,11 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
               <div className="flex items-center gap-3">
                 <span className="hidden sm:inline-flex items-center gap-1">
                   Open
-                  <Kbd keys={COMMAND_KEYS}>K</Kbd>
+                  <Kbd>⌘K</Kbd>
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1">
                   Close
-                  <Kbd keys={ESCAPE_KEYS}>ESC</Kbd>
+                  <Kbd>Esc</Kbd>
                 </span>
               </div>
             </div>

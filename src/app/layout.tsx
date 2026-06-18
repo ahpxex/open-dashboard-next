@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { CommandMenuProvider } from "@/components/CommandMenuProvider";
+import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 // Opt-out of static generation for all pages
 // Required for Refine's router provider which uses useSearchParams
@@ -29,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", inter.variable)}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-foreground bg-background`}
       >

@@ -1,14 +1,14 @@
 "use client";
 
-import {
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-} from "@heroui/react";
 import { DotsThreeVertical, PencilSimple, Trash } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export interface ActionMenuItem {
   key: string;
@@ -72,7 +72,6 @@ export function ActionMenu({
             label: "Delete",
             icon: <Trash size={18} />,
             color: "danger" as const,
-            className: "text-danger",
             onPress: onDelete,
           },
         ]
@@ -84,25 +83,27 @@ export function ActionMenu({
   }
 
   return (
-    <Dropdown>
-      <DropdownTrigger>
-        <Button isIconOnly size="sm" variant="light" aria-label={ariaLabel}>
-          <DotsThreeVertical size={18} weight="bold" />
-        </Button>
-      </DropdownTrigger>
-      <DropdownMenu aria-label={ariaLabel}>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="ghost" size="icon-sm" aria-label={ariaLabel}>
+            <DotsThreeVertical size={18} weight="bold" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end" aria-label={ariaLabel}>
         {menuItems.map((item) => (
-          <DropdownItem
+          <DropdownMenuItem
             key={item.key}
-            startContent={item.icon}
-            color={item.color}
+            variant={item.color === "danger" ? "destructive" : "default"}
             className={item.className}
-            onPress={item.onPress}
+            onClick={item.onPress}
           >
+            {item.icon}
             {item.label}
-          </DropdownItem>
+          </DropdownMenuItem>
         ))}
-      </DropdownMenu>
-    </Dropdown>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

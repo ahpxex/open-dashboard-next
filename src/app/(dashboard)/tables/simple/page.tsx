@@ -1,16 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import {
-  Chip,
   Table,
   TableBody,
   TableCell,
-  TableColumn,
+  TableHead,
   TableHeader,
   TableRow,
-} from "@heroui/react";
-import { useEffect, useState } from "react";
+} from "@/components/ui/table";
 import { type SimpleUser, simpleHandlers } from "@/examples/simple";
+
+const statusBadgeClass: Record<SimpleUser["status"], string> = {
+  active:
+    "border-transparent bg-green-500/15 text-green-700 dark:text-green-400",
+  pending:
+    "border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  inactive: "border-transparent bg-destructive/15 text-destructive",
+};
 
 export default function SimplePage() {
   const [users, setUsers] = useState<SimpleUser[]>([]);
@@ -29,15 +38,6 @@ export default function SimplePage() {
       });
   }, []);
 
-  const statusColorMap: Record<
-    SimpleUser["status"],
-    "success" | "warning" | "danger"
-  > = {
-    active: "success",
-    pending: "warning",
-    inactive: "danger",
-  };
-
   const columns = [
     { key: "name", label: "Name" },
     { key: "email", label: "Email" },
@@ -45,24 +45,20 @@ export default function SimplePage() {
     { key: "role", label: "Role" },
   ];
 
-  const renderCell = (user: SimpleUser, columnKey: React.Key) => {
+  const renderCell = (user: SimpleUser, columnKey: string) => {
     switch (columnKey) {
       case "name":
         return <span className="font-medium">{user.name}</span>;
       case "email":
-        return (
-          <span className="text-gray-600 dark:text-gray-400">{user.email}</span>
-        );
+        return <span className="text-muted-foreground">{user.email}</span>;
       case "status":
         return (
-          <Chip color={statusColorMap[user.status]} size="sm" variant="flat">
+          <Badge variant="outline" className={statusBadgeClass[user.status]}>
             {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-          </Chip>
+          </Badge>
         );
       case "role":
-        return (
-          <span className="text-gray-600 dark:text-gray-400">{user.role}</span>
-        );
+        return <span className="text-muted-foreground">{user.role}</span>;
       default:
         return null;
     }
@@ -71,35 +67,53 @@ export default function SimplePage() {
   return (
     <div className="space-y-6 p-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Simple Table
-        </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          A simple table example using HeroUI components
+        <h1 className="text-3xl font-bold text-foreground">Simple Table</h1>
+        <p className="mt-2 text-muted-foreground">
+          A simple table example using shadcn/ui components
         </p>
       </div>
 
-      <Table aria-label="Simple user table">
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          items={users}
-          isLoading={isLoading}
-          loadingContent={<span>Loading...</span>}
-          emptyContent="No users found"
-        >
-          {(item) => (
-            <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey)}</TableCell>
-              )}
+      <div className="rounded-none border">
+        <Table aria-label="Simple user table">
+          <TableHeader>
+            <TableRow>
+              {columns.map((column) => (
+                <TableHead key={column.key}>{column.label}</TableHead>
+              ))}
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length}>
+                  <div className="flex items-center justify-center py-10">
+                    <Spinner />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : users.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="py-10 text-center text-muted-foreground"
+                >
+                  No users found
+                </TableCell>
+              </TableRow>
+            ) : (
+              users.map((user) => (
+                <TableRow key={user.id}>
+                  {columns.map((column) => (
+                    <TableCell key={column.key}>
+                      {renderCell(user, column.key)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

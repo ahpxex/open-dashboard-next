@@ -13,7 +13,9 @@ export const usersColumns: ColumnDef<User>[] = [
     accessorKey: "name",
     header: "Name",
     cell: (info) => (
-      <span className="font-medium truncate block">{info.getValue() as string}</span>
+      <span className="font-medium truncate block">
+        {info.getValue() as string}
+      </span>
     ),
   },
   {

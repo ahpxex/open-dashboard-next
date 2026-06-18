@@ -1,7 +1,7 @@
 "use client";
 
-import { Spinner } from "@heroui/react";
 import { Suspense, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { usersConfig, usersMeta } from "@/examples/users";
 import { PaginationTable, TablePage } from "@/infra/table";
 

@@ -1,19 +1,6 @@
 "use client";
 
 import {
-  Button,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Select,
-  SelectItem,
-  Spinner,
-  useDisclosure,
-} from "@heroui/react";
-import {
   ArrowClockwise,
   PencilSimple,
   Plus,
@@ -21,6 +8,24 @@ import {
 } from "@phosphor-icons/react";
 import { Suspense, useCallback, useMemo, useRef, useState } from "react";
 import { FloatingActionMenu } from "@/components/FloatingActionMenu";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import {
   generateSelectableProducts,
   type SelectableProduct,
@@ -39,7 +44,7 @@ type ProductFormData = Omit<SelectableProduct, "id" | "lastRestocked">;
 
 export default function SelectablesPage() {
   const tableRef = useRef<PaginationTableRef>(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [open, setOpen] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -66,25 +71,22 @@ export default function SelectablesPage() {
       status: "active",
       supplier: "",
     });
-    onOpen();
-  }, [onOpen]);
+    setOpen(true);
+  }, []);
 
-  const handleEdit = useCallback(
-    (product: SelectableProduct) => {
-      setEditingProduct(product);
-      setFormData({
-        name: product.name,
-        sku: product.sku,
-        category: product.category,
-        price: product.price,
-        stock: product.stock,
-        status: product.status,
-        supplier: product.supplier,
-      });
-      onOpen();
-    },
-    [onOpen],
-  );
+  const handleEdit = useCallback((product: SelectableProduct) => {
+    setEditingProduct(product);
+    setFormData({
+      name: product.name,
+      sku: product.sku,
+      category: product.category,
+      price: product.price,
+      stock: product.stock,
+      status: product.status,
+      supplier: product.supplier,
+    });
+    setOpen(true);
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     if (editingProduct) {
@@ -92,9 +94,9 @@ export default function SelectablesPage() {
     } else {
       await selectablesHandlers.create?.(formData);
     }
-    onClose();
+    setOpen(false);
     tableRef.current?.refresh();
-  }, [editingProduct, formData, onClose]);
+  }, [editingProduct, formData]);
 
   const handleFormChange = useCallback(
     (field: keyof ProductFormData, value: string | number) => {
@@ -175,19 +177,12 @@ export default function SelectablesPage() {
       }
       actions={
         <>
-          <Button
-            color="secondary"
-            variant="flat"
-            startContent={<Sparkle size={20} weight="fill" />}
-            onPress={handleGenerateSamples}
-          >
+          <Button variant="secondary" onClick={handleGenerateSamples}>
+            <Sparkle size={20} weight="fill" />
             Generate Samples
           </Button>
-          <Button
-            color="primary"
-            startContent={<Plus size={20} weight="bold" />}
-            onPress={handleAddNew}
-          >
+          <Button onClick={handleAddNew}>
+            <Plus size={20} weight="bold" />
             Add Product
           </Button>
         </>
@@ -216,90 +211,114 @@ export default function SelectablesPage() {
         actions={floatingActions}
       />
 
-      <Modal isOpen={isOpen} onClose={onClose} size="2xl">
-        <ModalContent>
-          <ModalHeader>
-            {editingProduct ? "Edit Product" : "Add New Product"}
-          </ModalHeader>
-          <ModalBody>
-            <div className="flex flex-col gap-4">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingProduct ? "Edit Product" : "Add New Product"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <Field label="Product Name" required>
               <Input
-                label="Product Name"
                 placeholder="Enter product name"
                 value={formData.name}
-                onValueChange={(value) => handleFormChange("name", value)}
-                isRequired
+                onChange={(event) =>
+                  handleFormChange("name", event.target.value)
+                }
               />
-              <div className="grid grid-cols-2 gap-4">
+            </Field>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="SKU" required>
                 <Input
-                  label="SKU"
                   placeholder="Enter SKU"
                   value={formData.sku}
-                  onValueChange={(value) => handleFormChange("sku", value)}
-                  isRequired
+                  onChange={(event) =>
+                    handleFormChange("sku", event.target.value)
+                  }
                 />
+              </Field>
+              <Field label="Category" required>
                 <Input
-                  label="Category"
                   placeholder="Enter category"
                   value={formData.category}
-                  onValueChange={(value) => handleFormChange("category", value)}
-                  isRequired
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Price"
-                  type="number"
-                  placeholder="0.00"
-                  value={formData.price.toString()}
-                  onValueChange={(value) =>
-                    handleFormChange("price", Number.parseFloat(value) || 0)
+                  onChange={(event) =>
+                    handleFormChange("category", event.target.value)
                   }
-                  startContent={<span className="text-gray-500">$</span>}
-                  isRequired
                 />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Price" required>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    className="pl-6"
+                    value={formData.price.toString()}
+                    onChange={(event) =>
+                      handleFormChange(
+                        "price",
+                        Number.parseFloat(event.target.value) || 0,
+                      )
+                    }
+                  />
+                </div>
+              </Field>
+              <Field label="Stock" required>
                 <Input
-                  label="Stock"
                   type="number"
                   placeholder="0"
                   value={formData.stock.toString()}
-                  onValueChange={(value) =>
-                    handleFormChange("stock", Number.parseInt(value, 10) || 0)
+                  onChange={(event) =>
+                    handleFormChange(
+                      "stock",
+                      Number.parseInt(event.target.value, 10) || 0,
+                    )
                   }
-                  isRequired
                 />
-              </div>
+              </Field>
+            </div>
+            <Field label="Status" required>
               <Select
-                label="Status"
-                placeholder="Select status"
-                selectedKeys={[formData.status]}
-                onChange={(event) =>
-                  handleFormChange("status", event.target.value)
+                value={formData.status}
+                onValueChange={(value) =>
+                  handleFormChange("status", value as string)
                 }
-                isRequired
               >
-                <SelectItem key="active">Active</SelectItem>
-                <SelectItem key="out-of-stock">Out of Stock</SelectItem>
-                <SelectItem key="discontinued">Discontinued</SelectItem>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="out-of-stock">Out of Stock</SelectItem>
+                  <SelectItem value="discontinued">Discontinued</SelectItem>
+                </SelectContent>
               </Select>
+            </Field>
+            <Field label="Supplier">
               <Input
-                label="Supplier"
                 placeholder="Enter supplier name"
                 value={formData.supplier}
-                onValueChange={(value) => handleFormChange("supplier", value)}
+                onChange={(event) =>
+                  handleFormChange("supplier", event.target.value)
+                }
               />
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="light" onPress={onClose}>
+            </Field>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button color="primary" onPress={handleSubmit}>
+            <Button onClick={handleSubmit}>
               {editingProduct ? "Update" : "Create"}
             </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </TablePage>
   );
 }

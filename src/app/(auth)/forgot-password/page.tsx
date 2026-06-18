@@ -1,10 +1,12 @@
 "use client";
 
-import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
-import { Input } from "@heroui/input";
-import { Link } from "@heroui/link";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { TextLink } from "@/components/ui/text-link";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -29,17 +31,17 @@ export default function ForgotPasswordPage() {
           <h1 className="text-4xl font-bold">Check your email</h1>
         </div>
         <Card className="w-full max-w-md">
-          <CardBody className="text-center py-8">
+          <CardContent className="text-center py-8">
             <div className="text-5xl mb-4">✓</div>
             <h3 className="text-xl font-semibold mb-2">Email sent</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               If an account exists for {email}, you will receive a password
               reset link shortly.
             </p>
-            <Button variant="bordered" onPress={() => setSubmitted(false)}>
+            <Button variant="outline" onClick={() => setSubmitted(false)}>
               Back to form
             </Button>
-          </CardBody>
+          </CardContent>
         </Card>
       </>
     );
@@ -50,44 +52,36 @@ export default function ForgotPasswordPage() {
       <div className="flex flex-col space-y-2 justify-center items-center">
         <h1 className="text-4xl font-bold">Forgot Password</h1>
         <div className="flex space-x-1">
-          <p className="text-gray-600">Remember your password?</p>
-          <Link href={"/login"} underline="always">
-            Sign in here
-          </Link>
+          <p className="text-muted-foreground">Remember your password?</p>
+          <TextLink href={"/login"}>Sign in here</TextLink>
           <p>.</p>
         </div>
       </div>
       <Card className="w-full max-w-md">
-        <CardBody className="space-y-4">
+        <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Enter your email address and we will send you a link to reset your
               password.
             </p>
-            <Input
-              isRequired
-              type="email"
-              label="Email"
-              placeholder="Enter your email"
-              variant="underlined"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Button
-              type="submit"
-              color="primary"
-              isLoading={isLoading}
-              className="w-full"
-            >
+            <Field label="Email" required>
+              <Input
+                required
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Field>
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? <Spinner /> : null}
               Send Reset Link
             </Button>
             <div className="text-center">
-              <Link href="/login" size="sm" className="text-primary">
-                Back to Sign In
-              </Link>
+              <TextLink href="/login">Back to Sign In</TextLink>
             </div>
           </form>
-        </CardBody>
+        </CardContent>
       </Card>
     </>
   );

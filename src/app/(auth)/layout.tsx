@@ -1,7 +1,7 @@
-import { Link } from "@heroui/link";
 import { cookies } from "next/headers";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { TextLink } from "@/components/ui/text-link";
 import { decodeSession, SESSION_COOKIE } from "@/lib/auth/session";
 
 export default async function AuthLayout({
@@ -26,23 +26,21 @@ export default async function AuthLayout({
           alt="Background"
           className="object-cover"
         />
-        <div className="absolute bottom-2 left-2 text-xs text-white bg-opacity-50 px-2 py-1 rounded">
+        <div className="absolute bottom-2 left-2 text-xs text-white bg-opacity-50 px-2 py-1 rounded-none">
           Image by{" "}
-          <Link
+          <TextLink
             href="https://pixabay.com/users/nils-art-7103936/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9765223"
-            underline="always"
             className="text-gray-50"
           >
             Nils
-          </Link>{" "}
+          </TextLink>{" "}
           from{" "}
-          <Link
+          <TextLink
             href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=9765223"
-            underline="always"
             className="text-gray-50"
           >
             Pixabay
-          </Link>
+          </TextLink>
         </div>
       </div>
       <div className="flex flex-col space-y-6 items-center justify-center p-8">

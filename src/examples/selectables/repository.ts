@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
-import type { ResourceHandlers } from "@/infra/data";
 import { createMockRepository } from "@/examples/_utils/create-mock-repository";
+import type { ResourceHandlers } from "@/infra/data";
 import { generateSelectableProducts } from "./mock-data";
 import type { SelectableProduct } from "./types";
 

@@ -1,21 +1,22 @@
 "use client";
 
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Checkbox,
-  CheckboxGroup,
-  Chip,
-  Input,
-  Select,
-  SelectItem,
-  Tab,
-  Tabs,
-  Textarea,
-} from "@heroui/react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function InteractionFilteringFormsPage() {
   return (
@@ -28,13 +29,17 @@ export default function InteractionFilteringFormsPage() {
         </p>
       </div>
 
-      <Tabs aria-label="Interaction & Filtering forms">
-        <Tab key="search" title="Search & Filter">
+      <Tabs defaultValue="search">
+        <TabsList>
+          <TabsTrigger value="search">Search & Filter</TabsTrigger>
+          <TabsTrigger value="contact">Contact/Support</TabsTrigger>
+        </TabsList>
+        <TabsContent value="search">
           <SearchFilterForm />
-        </Tab>
-        <Tab key="contact" title="Contact/Support">
+        </TabsContent>
+        <TabsContent value="contact">
           <ContactSupportForm />
-        </Tab>
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -50,6 +55,15 @@ function SearchFilterForm() {
   const [sortBy, setSortBy] = useState("date-desc");
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+
+  const toggleValue = (
+    list: string[],
+    setList: (next: string[]) => void,
+    value: string,
+    checked: boolean,
+  ) => {
+    setList(checked ? [...list, value] : list.filter((item) => item !== value));
+  };
 
   const handleApply = async () => {
     setIsSearching(true);
@@ -124,6 +138,13 @@ function SearchFilterForm() {
     { key: "status-asc", label: "Status" },
   ];
 
+  const statusOptions = [
+    { key: "draft", label: "Draft" },
+    { key: "active", label: "Active" },
+    { key: "completed", label: "Completed" },
+    { key: "cancelled", label: "Cancelled" },
+  ];
+
   const availableTags = [
     { key: "web", label: "Web" },
     { key: "mobile", label: "Mobile" },
@@ -142,21 +163,16 @@ function SearchFilterForm() {
         <CardHeader>
           <h2 className="text-xl font-semibold">Search & Filter</h2>
         </CardHeader>
-        <CardBody>
+        <CardContent>
           <div className="space-y-6">
-            <Input
-              isClearable
-              label="Search"
-              placeholder="Search by keyword..."
-              value={searchQuery}
-              onValueChange={setSearchQuery}
-              onClear={() => setSearchQuery("")}
-              startContent={
+            <Field label="Search">
+              <div className="relative">
                 <svg
-                  className="w-4 h-4 text-gray-400"
+                  className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -165,100 +181,124 @@ function SearchFilterForm() {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
-              }
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <CheckboxGroup
-                  label="Status"
-                  value={status}
-                  onValueChange={setStatus}
-                  orientation="horizontal"
-                >
-                  <Checkbox value="draft">Draft</Checkbox>
-                  <Checkbox value="active">Active</Checkbox>
-                  <Checkbox value="completed">Completed</Checkbox>
-                  <Checkbox value="cancelled">Cancelled</Checkbox>
-                </CheckboxGroup>
+                <Input
+                  placeholder="Search by keyword..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
               </div>
+            </Field>
 
-              <Select
-                label="Category"
-                placeholder="Select category"
-                selectedKeys={category ? [category] : []}
-                onSelectionChange={(keys) => {
-                  const value = Array.from(keys)[0] as string;
-                  setCategory(value);
-                }}
-              >
-                {categories.map((cat) => (
-                  <SelectItem key={cat.key}>{cat.label}</SelectItem>
-                ))}
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Status">
+                <div className="flex flex-wrap gap-3">
+                  {statusOptions.map((option) => (
+                    <label
+                      key={option.key}
+                      className="flex items-center gap-2 text-xs"
+                    >
+                      <Checkbox
+                        checked={status.includes(option.key)}
+                        onCheckedChange={(checked) =>
+                          toggleValue(
+                            status,
+                            setStatus,
+                            option.key,
+                            checked === true,
+                          )
+                        }
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </Field>
+
+              <Field label="Category">
+                <Select
+                  value={category}
+                  onValueChange={(value) => setCategory(value ?? "")}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.key} value={cat.key}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                type="date"
-                label="Date From"
-                value={dateFrom}
-                onValueChange={setDateFrom}
-              />
-              <Input
-                type="date"
-                label="Date To"
-                value={dateTo}
-                onValueChange={setDateTo}
-              />
+              <Field label="Date From">
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </Field>
+              <Field label="Date To">
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </Field>
             </div>
 
-            <div>
-              <CheckboxGroup
-                label="Tags"
-                value={tags}
-                onValueChange={setTags}
-                orientation="horizontal"
-                classNames={{
-                  wrapper: "gap-2",
-                }}
-              >
+            <Field label="Tags">
+              <div className="flex flex-wrap gap-3">
                 {availableTags.map((tag) => (
-                  <Checkbox key={tag.key} value={tag.key}>
-                    {tag.label}
-                  </Checkbox>
+                  <label
+                    key={tag.key}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <Checkbox
+                      checked={tags.includes(tag.key)}
+                      onCheckedChange={(checked) =>
+                        toggleValue(tags, setTags, tag.key, checked === true)
+                      }
+                    />
+                    <span>{tag.label}</span>
+                  </label>
                 ))}
-              </CheckboxGroup>
-            </div>
+              </div>
+            </Field>
 
-            <Select
-              label="Sort By"
-              placeholder="Select sort order"
-              selectedKeys={sortBy ? [sortBy] : []}
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0] as string;
-                setSortBy(value);
-              }}
-            >
-              {sortOptions.map((option) => (
-                <SelectItem key={option.key}>{option.label}</SelectItem>
-              ))}
-            </Select>
+            <Field label="Sort By">
+              <Select
+                value={sortBy}
+                onValueChange={(value) => setSortBy(value ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select sort order" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.key} value={option.key}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
             <div className="flex gap-3 justify-end">
-              <Button variant="bordered" onPress={handleReset}>
+              <Button variant="outline" onClick={handleReset}>
                 Reset
               </Button>
-              <Button
-                color="primary"
-                onPress={handleApply}
-                isLoading={isSearching}
-              >
+              <Button onClick={handleApply} disabled={isSearching}>
+                {isSearching ? <Spinner /> : null}
                 Apply Filters
               </Button>
             </div>
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
 
       {results.length > 0 && (
@@ -268,27 +308,31 @@ function SearchFilterForm() {
               Search Results ({results.length})
             </h3>
           </CardHeader>
-          <CardBody>
+          <CardContent>
             <div className="space-y-3">
               {results.map((result) => (
                 <div
                   key={result.id}
-                  className="p-4 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+                  className="p-4 border border-gray-200 rounded-none hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-medium">{result.title}</h4>
-                    <Chip
-                      size="sm"
-                      color={
+                    <Badge
+                      variant={
                         result.status === "active"
-                          ? "success"
+                          ? "outline"
                           : result.status === "completed"
-                            ? "primary"
-                            : "default"
+                            ? "default"
+                            : "secondary"
+                      }
+                      className={
+                        result.status === "active"
+                          ? "border-transparent bg-green-500/15 text-green-700"
+                          : undefined
                       }
                     >
                       {result.status}
-                    </Chip>
+                    </Badge>
                   </div>
                   <div className="flex gap-4 text-sm text-gray-600">
                     <span>Category: {result.category}</span>
@@ -296,15 +340,15 @@ function SearchFilterForm() {
                   </div>
                   <div className="flex gap-2 mt-2">
                     {result.tags.map((tag: string) => (
-                      <Chip key={tag} size="sm" variant="flat">
+                      <Badge key={tag} variant="secondary">
                         {tag}
-                      </Chip>
+                      </Badge>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
-          </CardBody>
+          </CardContent>
         </Card>
       )}
     </div>
@@ -371,7 +415,7 @@ function ContactSupportForm() {
   if (isSubmitted) {
     return (
       <Card className="max-w-2xl mt-4">
-        <CardBody className="text-center py-12">
+        <CardContent className="text-center py-12">
           <div className="text-6xl mb-4">✓</div>
           <h3 className="text-2xl font-semibold mb-2">
             Thank You for Contacting Us
@@ -380,10 +424,10 @@ function ContactSupportForm() {
             We&apos;ve received your message and will get back to you within 24
             hours. A confirmation email has been sent to your inbox.
           </p>
-          <Button color="primary" onPress={() => setIsSubmitted(false)}>
+          <Button onClick={() => setIsSubmitted(false)}>
             Submit Another Request
           </Button>
-        </CardBody>
+        </CardContent>
       </Card>
     );
   }
@@ -393,7 +437,7 @@ function ContactSupportForm() {
       <CardHeader>
         <h2 className="text-xl font-semibold">Contact Support</h2>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <p className="text-sm text-gray-600">
             Fill out the form below and our support team will get back to you as
@@ -401,81 +445,91 @@ function ContactSupportForm() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              isRequired
-              label="Name"
-              placeholder="Enter your name"
-              value={name}
-              onValueChange={setName}
-            />
-            <Input
-              isRequired
-              type="email"
-              label="Email"
-              placeholder="Enter your email"
-              value={email}
-              onValueChange={setEmail}
-            />
+            <Field label="Name" required>
+              <Input
+                required
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </Field>
+            <Field label="Email" required>
+              <Input
+                required
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Field>
           </div>
 
-          <Input
-            isRequired
-            label="Subject"
-            placeholder="Brief description of your issue"
-            value={subject}
-            onValueChange={setSubject}
-          />
+          <Field label="Subject" required>
+            <Input
+              required
+              placeholder="Brief description of your issue"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+            />
+          </Field>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
-              isRequired
-              label="Category"
-              placeholder="Select category"
-              selectedKeys={category ? [category] : []}
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0] as string;
-                setCategory(value);
-              }}
-            >
-              {categories.map((cat) => (
-                <SelectItem key={cat.key}>{cat.label}</SelectItem>
-              ))}
-            </Select>
+            <Field label="Category" required>
+              <Select
+                value={category}
+                onValueChange={(value) => setCategory(value ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.key} value={cat.key}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
-            <Select
-              isRequired
-              label="Priority"
-              placeholder="Select priority"
-              selectedKeys={priority ? [priority] : []}
-              onSelectionChange={(keys) => {
-                const value = Array.from(keys)[0] as string;
-                setPriority(value);
-              }}
-            >
-              <SelectItem key="low">Low</SelectItem>
-              <SelectItem key="medium">Medium</SelectItem>
-              <SelectItem key="high">High</SelectItem>
-              <SelectItem key="urgent">Urgent</SelectItem>
-            </Select>
+            <Field label="Priority" required>
+              <Select
+                value={priority}
+                onValueChange={(value) => setPriority(value ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
           </div>
 
-          <Textarea
-            isRequired
+          <Field
             label="Message"
-            placeholder="Please describe your issue in detail..."
-            value={message}
-            onValueChange={setMessage}
-            minRows={6}
-            maxRows={12}
+            required
             description={`${message.length}/2000 characters`}
-            maxLength={2000}
-          />
+          >
+            <Textarea
+              required
+              placeholder="Please describe your issue in detail..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={6}
+              maxLength={2000}
+            />
+          </Field>
 
           <div>
             <label className="block text-sm font-medium mb-2">
               Attachment (Optional)
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
+            <div className="border-2 border-dashed border-gray-300 rounded-none p-4 text-center hover:border-gray-400 transition-colors">
               <input
                 type="file"
                 onChange={handleFileChange}
@@ -492,6 +546,7 @@ function ContactSupportForm() {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -520,15 +575,16 @@ function ContactSupportForm() {
           </div>
 
           <div className="flex gap-3 justify-end">
-            <Button variant="bordered" type="button">
+            <Button variant="outline" type="button">
               Cancel
             </Button>
-            <Button type="submit" color="primary" isLoading={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <Spinner /> : null}
               Submit Request
             </Button>
           </div>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

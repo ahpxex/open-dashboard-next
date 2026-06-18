@@ -1,6 +1,8 @@
-import { Avatar, Button, Chip } from "@heroui/react";
 import { PencilSimple, Trash } from "@phosphor-icons/react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { type ChipColor, StatusChip } from "@/infra/ui";
 import type { Task, TaskStatus } from "./types";
 
@@ -25,10 +27,10 @@ export function createTasksColumns(
       header: "Task",
       cell: (info) => (
         <div className="flex flex-col min-w-0">
-          <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+          <span className="font-medium text-foreground truncate">
             {info.getValue() as string}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+          <span className="text-xs text-muted-foreground truncate">
             {info.row.original.email}
           </span>
         </div>
@@ -37,14 +39,20 @@ export function createTasksColumns(
     {
       accessorKey: "assignee",
       header: "Assignee",
-      cell: (info) => (
-        <div className="flex items-center gap-2 min-w-0">
-          <Avatar size="sm" src={info.row.original.avatar} className="shrink-0" />
-          <span className="text-gray-700 dark:text-gray-300 truncate">
-            {info.getValue() as string}
-          </span>
-        </div>
-      ),
+      cell: (info) => {
+        const assignee = info.getValue() as string;
+        return (
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar size="sm" className="shrink-0">
+              <AvatarImage src={info.row.original.avatar} alt={assignee} />
+              <AvatarFallback>
+                {assignee?.charAt(0)?.toUpperCase() ?? "?"}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-foreground truncate">{assignee}</span>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "status",
@@ -60,9 +68,7 @@ export function createTasksColumns(
       accessorKey: "priority",
       header: "Priority",
       cell: (info) => (
-        <Chip size="sm" variant="bordered">
-          {info.getValue() as string}
-        </Chip>
+        <Badge variant="outline">{info.getValue() as string}</Badge>
       ),
     },
     {
@@ -71,9 +77,9 @@ export function createTasksColumns(
       cell: (info) => (
         <div className="flex flex-wrap gap-1">
           {(info.getValue() as string[]).map((tag) => (
-            <Chip key={tag} size="sm" variant="flat">
+            <Badge key={tag} variant="secondary">
               {tag}
-            </Chip>
+            </Badge>
           ))}
         </div>
       ),
@@ -82,7 +88,7 @@ export function createTasksColumns(
       accessorKey: "dueDate",
       header: "Due Date",
       cell: (info) => (
-        <span className="text-gray-600 dark:text-gray-400">
+        <span className="text-muted-foreground">
           {info.getValue() as string}
         </span>
       ),
@@ -94,19 +100,19 @@ export function createTasksColumns(
         <div className="flex gap-2">
           <Button
             size="sm"
-            variant="flat"
-            startContent={<PencilSimple size={16} />}
-            onPress={() => context.onEdit(info.row.original)}
+            variant="secondary"
+            onClick={() => context.onEdit(info.row.original)}
           >
+            <PencilSimple size={16} />
             Edit
           </Button>
           <Button
             size="sm"
-            variant="light"
-            color="danger"
-            startContent={<Trash size={16} />}
-            onPress={() => context.onDelete(info.row.original.id)}
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={() => context.onDelete(info.row.original.id)}
           >
+            <Trash size={16} />
             Delete
           </Button>
         </div>

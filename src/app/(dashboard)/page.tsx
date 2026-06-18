@@ -1,9 +1,5 @@
 "use client";
 
-import { Button } from "@heroui/button";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Chip } from "@heroui/chip";
-import { Progress } from "@heroui/progress";
 import {
   ChartLine,
   Clock,
@@ -28,6 +24,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import type { SessionUser } from "@/lib/auth/session";
 import { useThemeColors } from "@/lib/color-theme";
 import {
@@ -36,132 +36,133 @@ import {
   trafficSourceData,
 } from "@/lib/dashboard/chart-data";
 
+const trendUpBadge =
+  "border-transparent bg-green-500/15 text-green-700 dark:text-green-400";
+const trendDownBadge = "border-transparent bg-destructive/15 text-destructive";
+
+type Stat = {
+  label: string;
+  value: string;
+  icon: typeof Users;
+  trend: string;
+  trendUp: boolean;
+  progress: number;
+  sub: string;
+};
+
+const STATS: Stat[] = [
+  {
+    label: "Total Users",
+    value: "1,234",
+    icon: Users,
+    trend: "12%",
+    trendUp: true,
+    progress: 65,
+    sub: "65% of monthly target",
+  },
+  {
+    label: "Revenue",
+    value: "$45,678",
+    icon: CurrencyDollar,
+    trend: "8%",
+    trendUp: true,
+    progress: 78,
+    sub: "78% of monthly target",
+  },
+  {
+    label: "Active Sessions",
+    value: "432",
+    icon: Clock,
+    trend: "5%",
+    trendUp: true,
+    progress: 43,
+    sub: "Peak: 542 sessions",
+  },
+  {
+    label: "Conversion Rate",
+    value: "3.24%",
+    icon: ChartLine,
+    trend: "2%",
+    trendUp: false,
+    progress: 32,
+    sub: "Industry avg: 3.5%",
+  },
+];
+
+const ACTIVITY = [
+  { user: "John Doe", action: "Created new project", time: "2 min ago" },
+  { user: "Jane Smith", action: "Updated dashboard", time: "15 min ago" },
+  { user: "Bob Wilson", action: "Added new users", time: "1 hour ago" },
+  { user: "Alice Brown", action: "Generated report", time: "2 hours ago" },
+];
+
 export default function DashboardPage() {
   const { data: user } = useGetIdentity<SessionUser>();
   const themeColors = useThemeColors();
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard Overview</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Dashboard Overview
+          </h1>
+          <p className="mt-1 text-muted-foreground">
             Welcome back, {user?.name || user?.email}
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="bordered">Export Report</Button>
-          <Button color="primary">Create New</Button>
+          <Button variant="outline">Export Report</Button>
+          <Button>Create New</Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardBody className="gap-3">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                  <Users size={24} weight="duotone" />
+      {/* Stats */}
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {STATS.map((stat) => {
+          const Icon = stat.icon;
+          const TrendIcon = stat.trendUp ? TrendUp : TrendDown;
+          return (
+            <Card key={stat.label}>
+              <CardContent className="flex flex-col gap-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="grid size-9 place-items-center border border-border bg-muted text-foreground">
+                      <Icon size={20} weight="duotone" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {stat.label}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={stat.trendUp ? trendUpBadge : trendDownBadge}
+                  >
+                    <TrendIcon size={14} />
+                    {stat.trend}
+                  </Badge>
                 </div>
-                <p className="text-sm text-gray-500">Total Users</p>
-              </div>
-              <Chip
-                size="sm"
-                color="success"
-                variant="flat"
-                startContent={<TrendUp size={14} />}
-              >
-                12%
-              </Chip>
-            </div>
-            <p className="text-3xl font-bold">1,234</p>
-            <Progress value={65} size="sm" color="default" className="mt-2" />
-            <p className="text-xs text-gray-400">65% of monthly target</p>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardBody className="gap-3">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                  <CurrencyDollar size={24} weight="duotone" />
-                </div>
-                <p className="text-sm text-gray-500">Revenue</p>
-              </div>
-              <Chip
-                size="sm"
-                color="success"
-                variant="flat"
-                startContent={<TrendUp size={14} />}
-              >
-                8%
-              </Chip>
-            </div>
-            <p className="text-3xl font-bold">$45,678</p>
-            <Progress value={78} size="sm" color="default" className="mt-2" />
-            <p className="text-xs text-gray-400">78% of monthly target</p>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardBody className="gap-3">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                  <Clock size={24} weight="duotone" />
-                </div>
-                <p className="text-sm text-gray-500">Active Sessions</p>
-              </div>
-              <Chip
-                size="sm"
-                color="success"
-                variant="flat"
-                startContent={<TrendUp size={14} />}
-              >
-                5%
-              </Chip>
-            </div>
-            <p className="text-3xl font-bold">432</p>
-            <Progress value={43} size="sm" color="default" className="mt-2" />
-            <p className="text-xs text-gray-400">Peak: 542 sessions</p>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardBody className="gap-3">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                  <ChartLine size={24} weight="duotone" />
-                </div>
-                <p className="text-sm text-gray-500">Conversion Rate</p>
-              </div>
-              <Chip
-                size="sm"
-                color="danger"
-                variant="flat"
-                startContent={<TrendDown size={14} />}
-              >
-                2%
-              </Chip>
-            </div>
-            <p className="text-3xl font-bold">3.24%</p>
-            <Progress value={32} size="sm" color="default" className="mt-2" />
-            <p className="text-xs text-gray-400">Industry avg: 3.5%</p>
-          </CardBody>
-        </Card>
+                <p className="text-3xl font-bold tracking-tight">
+                  {stat.value}
+                </p>
+                <Progress value={stat.progress} className="mt-1" />
+                <p className="text-xs text-muted-foreground">{stat.sub}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* Charts */}
+      <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Revenue & Users Trend</h3>
-            <Chip size="sm" variant="flat">
-              Last 7 months
-            </Chip>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">
+              Revenue &amp; Users Trend
+            </CardTitle>
+            <Badge variant="secondary">Last 7 months</Badge>
           </CardHeader>
-          <CardBody>
+          <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart
                 data={monthlyRevenueData}
@@ -191,17 +192,15 @@ export default function DashboardPage() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </CardBody>
+          </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Product Performance</h3>
-            <Chip size="sm" variant="flat">
-              Top 5 Products
-            </Chip>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Product Performance</CardTitle>
+            <Badge variant="secondary">Top 5 Products</Badge>
           </CardHeader>
-          <CardBody>
+          <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
                 data={categoryData}
@@ -214,23 +213,20 @@ export default function DashboardPage() {
                 <XAxis dataKey="name" stroke={themeColors.chartColors.axis} />
                 <YAxis stroke={themeColors.chartColors.axis} />
                 <Tooltip />
-                <Bar
-                  dataKey="value"
-                  fill={themeColors.chartColors.primary}
-                  radius={[8, 8, 0, 0]}
-                />
+                <Bar dataKey="value" fill={themeColors.chartColors.primary} />
               </BarChart>
             </ResponsiveContainer>
-          </CardBody>
+          </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      {/* Bottom row */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <h3 className="text-lg font-semibold">Traffic Sources</h3>
+            <CardTitle className="text-base">Traffic Sources</CardTitle>
           </CardHeader>
-          <CardBody>
+          <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -258,102 +254,93 @@ export default function DashboardPage() {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-          </CardBody>
+          </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <h3 className="text-lg font-semibold">Recent Activity</h3>
+            <CardTitle className="text-base">Recent Activity</CardTitle>
           </CardHeader>
-          <CardBody className="gap-4">
-            {[
-              {
-                user: "John Doe",
-                action: "Created new project",
-                time: "2 min ago",
-              },
-              {
-                user: "Jane Smith",
-                action: "Updated dashboard",
-                time: "15 min ago",
-              },
-              {
-                user: "Bob Wilson",
-                action: "Added new users",
-                time: "1 hour ago",
-              },
-              {
-                user: "Alice Brown",
-                action: "Generated report",
-                time: "2 hours ago",
-              },
-            ].map((activity, idx) => (
+          <CardContent className="flex flex-col gap-4">
+            {ACTIVITY.map((activity) => (
               <div
-                key={idx}
-                className="flex items-start gap-3 pb-3 border-b last:border-b-0 border-gray-200 dark:border-gray-800"
+                key={activity.user}
+                className="flex items-start gap-3 border-b border-border pb-3 last:border-b-0 last:pb-0"
               >
-                <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-semibold">
+                <div className="grid size-8 shrink-0 place-items-center bg-muted text-xs font-semibold text-foreground">
                   {activity.user
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">
                     {activity.user}
                   </p>
-                  <p className="text-xs text-gray-500">{activity.action}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {activity.action}
+                  </p>
                 </div>
-                <span className="text-xs text-gray-400 whitespace-nowrap">
+                <span className="whitespace-nowrap text-xs text-muted-foreground">
                   {activity.time}
                 </span>
               </div>
             ))}
-          </CardBody>
+          </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <h3 className="text-lg font-semibold">Quick Actions</h3>
+            <CardTitle className="text-base">Quick Actions</CardTitle>
           </CardHeader>
-          <CardBody className="gap-3">
-            <Button fullWidth variant="flat">
+          <CardContent className="flex flex-col gap-2.5">
+            <Button className="w-full justify-start" variant="outline">
               Generate Report
             </Button>
-            <Button fullWidth variant="flat">
+            <Button className="w-full justify-start" variant="outline">
               Invite Team Member
             </Button>
-            <Button fullWidth variant="flat">
+            <Button className="w-full justify-start" variant="outline">
               View Analytics
             </Button>
-            <Button fullWidth variant="flat">
+            <Button className="w-full justify-start" variant="outline">
               Manage Settings
             </Button>
 
-            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <p className="text-sm font-semibold mb-2">System Status</p>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">API Status</span>
-                  <Chip size="sm" color="success" variant="dot">
+            <div className="mt-3 border border-border bg-muted/40 p-4">
+              <p className="mb-3 text-sm font-semibold">System Status</p>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    API Status
+                  </span>
+                  <Badge variant="outline" className={trendUpBadge}>
+                    <span className="size-1.5 bg-green-500" />
                     Operational
-                  </Chip>
+                  </Badge>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">Database</span>
-                  <Chip size="sm" color="success" variant="dot">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Database
+                  </span>
+                  <Badge variant="outline" className={trendUpBadge}>
+                    <span className="size-1.5 bg-green-500" />
                     Healthy
-                  </Chip>
+                  </Badge>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">Storage</span>
-                  <Chip size="sm" color="warning" variant="dot">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Storage</span>
+                  <Badge
+                    variant="outline"
+                    className="border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                  >
+                    <span className="size-1.5 bg-amber-500" />
                     72% Used
-                  </Chip>
+                  </Badge>
                 </div>
               </div>
             </div>
-          </CardBody>
+          </CardContent>
         </Card>
       </div>
     </div>

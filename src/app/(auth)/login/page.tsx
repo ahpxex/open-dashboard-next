@@ -1,11 +1,5 @@
 "use client";
 
-import { Alert } from "@heroui/alert";
-import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
-import { Checkbox } from "@heroui/checkbox";
-import { Input } from "@heroui/input";
-import { Link } from "@heroui/link";
 import {
   Eye,
   EyeSlash,
@@ -15,6 +9,14 @@ import {
 import { useLogin } from "@refinedev/core";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { TextLink } from "@/components/ui/text-link";
 import { loginSchema } from "@/lib/schemas";
 
 type LoginErrors = {
@@ -95,59 +97,56 @@ export default function LoginPage() {
       <div className="flex flex-col space-y-2 justify-center items-center">
         <h1 className="text-4xl font-bold">Welcome Back</h1>
         <div className="flex space-x-1">
-          <p className="text-gray-600">Sign in to your account, or</p>
-          <Link href={"/register"} underline="always">
-            sign up here
-          </Link>
+          <p className="text-muted-foreground">Sign in to your account, or</p>
+          <TextLink href={"/register"}>sign up here</TextLink>
           <p>.</p>
         </div>
       </div>
       <Card className="w-full max-w-md">
-        <CardBody className="space-y-4">
+        <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
             {errors.general && (
-              <Alert
-                color="warning"
-                variant="flat"
-                title="Unable to sign in"
-                description={errors.general}
-              />
+              <Alert variant="destructive">
+                <AlertTitle>Unable to sign in</AlertTitle>
+                <AlertDescription>{errors.general}</AlertDescription>
+              </Alert>
             )}
-            <Input
-              isRequired
-              type="email"
-              label="Email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                resetErrors("email");
-              }}
-              isInvalid={!!errors.email}
-              errorMessage={errors.email}
-            />
-            <Input
-              isRequired
-              type={isPasswordVisible ? "text" : "password"}
-              label="Password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                resetErrors("password");
-              }}
-              isInvalid={!!errors.password}
-              errorMessage={errors.password}
-              endContent={
+            <Field label="Email" required error={errors.email}>
+              <Input
+                required
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  resetErrors("email");
+                }}
+                aria-invalid={!!errors.email}
+              />
+            </Field>
+            <Field label="Password" required error={errors.password}>
+              <div className="relative">
+                <Input
+                  required
+                  type={isPasswordVisible ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    resetErrors("password");
+                  }}
+                  aria-invalid={!!errors.password}
+                  className="pr-9"
+                />
                 <Button
                   type="button"
-                  size="sm"
-                  variant="light"
-                  isIconOnly
+                  size="icon-sm"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2"
                   aria-label={
                     isPasswordVisible ? "Hide password" : "Show password"
                   }
-                  onPress={() => setIsPasswordVisible((prev) => !prev)}
+                  onClick={() => setIsPasswordVisible((prev) => !prev)}
                 >
                   {isPasswordVisible ? (
                     <EyeSlash className="h-5 w-5" weight="bold" />
@@ -155,49 +154,45 @@ export default function LoginPage() {
                     <Eye className="h-5 w-5" weight="bold" />
                   )}
                 </Button>
-              }
-            />
+              </div>
+            </Field>
             <div className="flex items-center justify-between">
-              <Checkbox
-                isSelected={rememberMe}
-                onValueChange={setRememberMe}
-                size="sm"
-              >
-                Remember me
-              </Checkbox>
-              <Link href="/forgot-password" size="sm" className="text-primary">
-                Forgot password?
-              </Link>
+              <label className="flex items-center gap-2 text-xs">
+                <Checkbox
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={(value) => setRememberMe(value === true)}
+                />
+                <span>Remember me</span>
+              </label>
+              <TextLink href="/forgot-password">Forgot password?</TextLink>
             </div>
-            <Button
-              type="submit"
-              color="primary"
-              variant="solid"
-              isLoading={isLoading}
-              className="w-full"
-            >
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? <Spinner /> : null}
               Sign In
             </Button>
           </form>
           <div className="relative mb-4">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
+              <span className="px-2 bg-card text-muted-foreground">
                 Or continue with
               </span>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="bordered" startContent={<GoogleLogoIcon />}>
+            <Button variant="outline">
+              <GoogleLogoIcon />
               Google
             </Button>
-            <Button variant="bordered" startContent={<GithubLogoIcon />}>
+            <Button variant="outline">
+              <GithubLogoIcon />
               GitHub
             </Button>
           </div>
-        </CardBody>
+        </CardContent>
       </Card>
     </>
   );

@@ -30,4 +30,3 @@ export interface ResourceHandlers<T = any> {
   update?: (id: string, variables: Partial<T>) => Promise<{ data: T }>;
   deleteOne?: (id: string) => Promise<{ data: { id: string } }>;
 }
-

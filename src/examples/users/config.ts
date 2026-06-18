@@ -4,7 +4,7 @@ import type { User } from "./types";
 
 export const usersMeta: TableMeta = {
   title: "Pagination Table",
-  description: "Server-side pagination with TanStack Table and Hero UI.",
+  description: "Server-side pagination with TanStack Table and shadcn/ui.",
 };
 
 export const usersConfig: TableConfig<User> = {

@@ -1,7 +1,16 @@
 "use client";
 
-import { Button, Input, Select, SelectItem } from "@heroui/react";
-import { ArrowClockwise, MagnifyingGlass } from "@phosphor-icons/react";
+import { ArrowClockwise, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import type { FilterConfig } from "./types";
 
 export interface TableToolbarProps {
@@ -41,43 +50,58 @@ export function TableToolbar({
       className={`mb-4 flex shrink-0 items-center gap-4 overflow-hidden ${className}`}
     >
       {enableSearch ? (
-        <Input
-          isClearable
-          placeholder={searchPlaceholder}
-          startContent={<MagnifyingGlass size={18} />}
-          value={searchValue}
-          onValueChange={onSearchChange}
-          className="flex-1"
-        />
+        <div className="relative flex-1">
+          <MagnifyingGlass
+            size={16}
+            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            placeholder={searchPlaceholder}
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+            className="pl-8 pr-8"
+          />
+          {searchValue ? (
+            <button
+              type="button"
+              onClick={() => onSearchChange("")}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X size={14} />
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       {filters.map((filter) => (
         <Select
           key={filter.key}
-          size="md"
-          placeholder={filter.placeholder}
-          selectedKeys={
-            filterValues[filter.key] ? [filterValues[filter.key]] : []
-          }
-          onChange={(event) => onFilterChange?.(filter.key, event.target.value)}
-          className="w-48"
-          aria-label={filter.label}
+          value={filterValues[filter.key] ?? ""}
+          onValueChange={(value) => onFilterChange?.(filter.key, value ?? "")}
         >
-          {filter.options.map((option) => (
-            <SelectItem key={option.key}>{option.label}</SelectItem>
-          ))}
+          <SelectTrigger className="w-48" aria-label={filter.label}>
+            <SelectValue placeholder={filter.placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {filter.options.map((option) => (
+              <SelectItem key={option.key} value={option.key}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
       ))}
 
       {onRefresh ? (
         <Button
-          isIconOnly
-          variant="flat"
-          onPress={onRefresh}
-          isLoading={isLoading}
+          variant="outline"
+          size="icon"
+          onClick={onRefresh}
+          disabled={isLoading}
           aria-label="Refresh"
         >
-          <ArrowClockwise size={20} />
+          {isLoading ? <Spinner /> : <ArrowClockwise size={18} />}
         </Button>
       ) : null}
     </div>

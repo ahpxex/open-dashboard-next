@@ -1,4 +1,8 @@
-import { filterSortPaginate, type ListParams, type ResourceHandlers } from "@/infra/data";
+import {
+  filterSortPaginate,
+  type ListParams,
+  type ResourceHandlers,
+} from "@/infra/data";
 
 /**
  * Configuration for creating a mock repository

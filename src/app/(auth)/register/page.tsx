@@ -1,15 +1,17 @@
 "use client";
 
-import { Alert } from "@heroui/alert";
-import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
-import { Checkbox } from "@heroui/checkbox";
-import { Input } from "@heroui/input";
-import { Link } from "@heroui/link";
 import { Eye, EyeSlash } from "@phosphor-icons/react/dist/ssr";
 import { useRegister } from "@refinedev/core";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import { TextLink } from "@/components/ui/text-link";
 import { registerSchema } from "@/lib/schemas";
 
 type RegisterErrors = {
@@ -138,168 +140,170 @@ export default function RegisterPage() {
       <div className="flex flex-col space-y-2 justify-center items-center">
         <h1 className="text-4xl font-bold">Create Account</h1>
         <div className="flex space-x-1">
-          <p className="text-gray-600">Already have an account?</p>
-          <Link href="/login" underline="always">
-            Sign in here
-          </Link>
+          <p className="text-muted-foreground">Already have an account?</p>
+          <TextLink href="/login">Sign in here</TextLink>
           <p>.</p>
         </div>
       </div>
       <Card className="w-full max-w-md">
-        <CardBody className="space-y-4">
+        <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             {errors.general && (
-              <Alert
-                color="danger"
-                variant="flat"
-                title="Unable to create account"
-                description={errors.general}
-              />
+              <Alert variant="destructive">
+                <AlertTitle>Unable to create account</AlertTitle>
+                <AlertDescription>{errors.general}</AlertDescription>
+              </Alert>
             )}
             {successMessage && (
-              <Alert
-                color="success"
-                variant="flat"
-                title="Account created!"
-                description={successMessage}
-                endContent={
+              <Alert className="border-green-500/40 text-green-700 dark:text-green-400">
+                <AlertTitle>Account created!</AlertTitle>
+                <AlertDescription>
+                  {successMessage}
                   <Button
                     size="sm"
-                    variant="flat"
-                    color="success"
-                    onPress={() => router.push("/login")}
+                    variant="outline"
+                    className="mt-2 w-fit"
+                    onClick={() => router.push("/login")}
                   >
                     Go to login
                   </Button>
-                }
-              />
+                </AlertDescription>
+              </Alert>
             )}
-            <Input
-              isRequired
-              type="text"
-              label="Full Name"
-              placeholder="Enter your full name"
-              value={name}
-              onChange={(event) => {
-                setName(event.target.value);
-                resetFieldErrors("name");
-              }}
-              isInvalid={!!errors.name}
-              errorMessage={errors.name}
-            />
-            <Input
-              isRequired
-              type="email"
-              label="Email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                resetFieldErrors("email");
-              }}
-              isInvalid={!!errors.email}
-              errorMessage={errors.email}
-            />
-            <div>
+            <Field label="Full Name" required error={errors.name}>
               <Input
-                isRequired
-                type={isPasswordVisible ? "text" : "password"}
-                label="Password"
-                placeholder="Create a password"
-                value={password}
+                required
+                type="text"
+                placeholder="Enter your full name"
+                value={name}
                 onChange={(event) => {
-                  setPassword(event.target.value);
-                  resetFieldErrors("password");
+                  setName(event.target.value);
+                  resetFieldErrors("name");
                 }}
-                isInvalid={!!errors.password}
-                errorMessage={errors.password}
-                endContent={
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="light"
-                    isIconOnly
-                    aria-label={
-                      isPasswordVisible ? "Hide password" : "Show password"
-                    }
-                    onPress={() => setIsPasswordVisible((prev) => !prev)}
-                  >
-                    {isPasswordVisible ? (
-                      <EyeSlash className="h-5 w-5" weight="bold" />
-                    ) : (
-                      <Eye className="h-5 w-5" weight="bold" />
-                    )}
-                  </Button>
-                }
-                description={
-                  password.length > 0 && (
-                    <div className="mt-2">
-                      <div className="flex gap-1 mb-1">
-                        {[...Array(5)].map((_, index) => (
-                          <div
-                            key={index}
-                            className={`h-1 flex-1 rounded ${
-                              index < passwordStrength
-                                ? passwordStrength <= 2
-                                  ? "bg-red-500"
-                                  : passwordStrength === 3
-                                    ? "bg-yellow-500"
-                                    : "bg-green-500"
-                                : "bg-gray-200"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Password strength:{" "}
-                        {passwordStrength <= 2
-                          ? "Weak"
-                          : passwordStrength === 3
-                            ? "Medium"
-                            : "Strong"}
-                      </p>
-                      {passwordHints.length > 0 && (
-                        <ul className="list-disc list-inside text-xs text-gray-500 mt-1">
-                          {passwordHints.map((hint) => (
-                            <li key={hint}>{hint}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )
-                }
+                aria-invalid={!!errors.name}
               />
-            </div>
-            <Input
-              isRequired
-              type={isConfirmPasswordVisible ? "text" : "password"}
-              label="Confirm Password"
-              placeholder="Confirm your password"
-              value={confirmPassword}
-              onChange={(event) => {
-                setConfirmPassword(event.target.value);
-                resetFieldErrors("confirmPassword");
-              }}
-              isInvalid={
-                confirmPassword.length > 0 && password !== confirmPassword
+            </Field>
+            <Field label="Email" required error={errors.email}>
+              <Input
+                required
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  resetFieldErrors("email");
+                }}
+                aria-invalid={!!errors.email}
+              />
+            </Field>
+            <Field
+              label="Password"
+              required
+              error={errors.password}
+              description={
+                password.length > 0 ? (
+                  <div className="mt-2">
+                    <div className="flex gap-1 mb-1">
+                      {[...Array(5)].map((_, index) => (
+                        <div
+                          key={index}
+                          className={`h-1 flex-1 rounded-none ${
+                            index < passwordStrength
+                              ? passwordStrength <= 2
+                                ? "bg-red-500"
+                                : passwordStrength === 3
+                                  ? "bg-yellow-500"
+                                  : "bg-green-500"
+                              : "bg-gray-200"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Password strength:{" "}
+                      {passwordStrength <= 2
+                        ? "Weak"
+                        : passwordStrength === 3
+                          ? "Medium"
+                          : "Strong"}
+                    </p>
+                    {passwordHints.length > 0 && (
+                      <ul className="list-disc list-inside text-xs text-muted-foreground mt-1">
+                        {passwordHints.map((hint) => (
+                          <li key={hint}>{hint}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : undefined
               }
-              errorMessage={
+            >
+              <div className="relative">
+                <Input
+                  required
+                  type={isPasswordVisible ? "text" : "password"}
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    resetFieldErrors("password");
+                  }}
+                  aria-invalid={!!errors.password}
+                  className="pr-9"
+                />
+                <Button
+                  type="button"
+                  size="icon-sm"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2"
+                  aria-label={
+                    isPasswordVisible ? "Hide password" : "Show password"
+                  }
+                  onClick={() => setIsPasswordVisible((prev) => !prev)}
+                >
+                  {isPasswordVisible ? (
+                    <EyeSlash className="h-5 w-5" weight="bold" />
+                  ) : (
+                    <Eye className="h-5 w-5" weight="bold" />
+                  )}
+                </Button>
+              </div>
+            </Field>
+            <Field
+              label="Confirm Password"
+              required
+              error={
                 confirmPassword.length > 0 && password !== confirmPassword
                   ? "Passwords do not match"
                   : errors.confirmPassword
               }
-              endContent={
+            >
+              <div className="relative">
+                <Input
+                  required
+                  type={isConfirmPasswordVisible ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(event) => {
+                    setConfirmPassword(event.target.value);
+                    resetFieldErrors("confirmPassword");
+                  }}
+                  aria-invalid={
+                    confirmPassword.length > 0 && password !== confirmPassword
+                  }
+                  className="pr-9"
+                />
                 <Button
                   type="button"
-                  size="sm"
-                  variant="light"
-                  isIconOnly
+                  size="icon-sm"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2"
                   aria-label={
                     isConfirmPasswordVisible
                       ? "Hide confirm password"
                       : "Show confirm password"
                   }
-                  onPress={() => setIsConfirmPasswordVisible((prev) => !prev)}
+                  onClick={() => setIsConfirmPasswordVisible((prev) => !prev)}
                 >
                   {isConfirmPasswordVisible ? (
                     <EyeSlash className="h-5 w-5" weight="bold" />
@@ -307,37 +311,28 @@ export default function RegisterPage() {
                     <Eye className="h-5 w-5" weight="bold" />
                   )}
                 </Button>
-              }
-            />
-            <Checkbox
-              isSelected={agreeToTerms}
-              onValueChange={(value) => {
-                setAgreeToTerms(value);
-                resetFieldErrors("general");
-              }}
-              size="sm"
-              className="mb-2"
-            >
-              I agree to the{" "}
-              <Link href="#" size="sm" className="text-primary">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link href="#" size="sm" className="text-primary">
-                Privacy Policy
-              </Link>
-            </Checkbox>
-            <Button
-              type="submit"
-              color="primary"
-              variant="solid"
-              isLoading={isLoading}
-              className="w-full"
-            >
+              </div>
+            </Field>
+            <label className="flex items-start gap-2 text-xs mb-2">
+              <Checkbox
+                className="mt-0.5"
+                checked={agreeToTerms}
+                onCheckedChange={(value) => {
+                  setAgreeToTerms(value === true);
+                  resetFieldErrors("general");
+                }}
+              />
+              <span>
+                I agree to the <TextLink href="#">Terms of Service</TextLink>{" "}
+                and <TextLink href="#">Privacy Policy</TextLink>
+              </span>
+            </label>
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? <Spinner /> : null}
               Create Account
             </Button>
           </form>
-        </CardBody>
+        </CardContent>
       </Card>
     </>
   );
