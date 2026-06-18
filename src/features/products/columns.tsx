@@ -1,15 +1,16 @@
+import { Link } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Product } from "@/db/schema";
 import { ActionMenu, type ChipColor, StatusChip } from "@/infra/ui";
 import type { ProductStatus } from "./schema";
 
-const statusColorMap: Record<ProductStatus, ChipColor> = {
+export const statusColorMap: Record<ProductStatus, ChipColor> = {
   available: "success",
   out_of_stock: "warning",
   discontinued: "danger",
 };
 
-const statusLabelMap: Record<ProductStatus, string> = {
+export const statusLabelMap: Record<ProductStatus, string> = {
   available: "Available",
   out_of_stock: "Out of Stock",
   discontinued: "Discontinued",
@@ -28,7 +29,13 @@ export function createProductsColumns(
       accessorKey: "name",
       header: "Name",
       cell: (info) => (
-        <span className="font-medium">{info.getValue() as string}</span>
+        <Link
+          to="/products/$id"
+          params={{ id: info.row.original.id }}
+          className="font-medium hover:underline"
+        >
+          {info.getValue() as string}
+        </Link>
       ),
     },
     {

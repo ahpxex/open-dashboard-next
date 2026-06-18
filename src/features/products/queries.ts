@@ -8,6 +8,7 @@ import type { ProductInput, ProductListParams, ProductUpdate } from "./schema";
 import {
   createProduct,
   deleteProduct,
+  getProduct,
   listProducts,
   updateProduct,
 } from "./server";
@@ -17,12 +18,20 @@ export const productKeys = {
   lists: () => [...productKeys.all, "list"] as const,
   list: (params: ProductListParams) =>
     [...productKeys.lists(), params] as const,
+  detail: (id: string) => [...productKeys.all, "detail", id] as const,
 };
 
 export function productsListQuery(params: ProductListParams) {
   return queryOptions({
     queryKey: productKeys.list(params),
     queryFn: () => listProducts({ data: params }),
+  });
+}
+
+export function productDetailQuery(id: string) {
+  return queryOptions({
+    queryKey: productKeys.detail(id),
+    queryFn: () => getProduct({ data: id }),
   });
 }
 
