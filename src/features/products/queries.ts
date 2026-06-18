@@ -8,6 +8,7 @@ import type { ProductInput, ProductListParams, ProductUpdate } from "./schema";
 import {
   createProduct,
   deleteProduct,
+  deleteProducts,
   getProduct,
   listProducts,
   updateProduct,
@@ -68,5 +69,18 @@ export function useDeleteProduct() {
       toastSuccess("Product deleted");
     },
     onError: (err) => toastError(err, "Failed to delete product"),
+  });
+}
+
+export function useBulkDeleteProducts() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => deleteProducts({ data: ids }),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: productKeys.all });
+      const n = result.ids.length;
+      toastSuccess(`${n} product${n === 1 ? "" : "s"} deleted`);
+    },
+    onError: (err) => toastError(err, "Failed to delete products"),
   });
 }

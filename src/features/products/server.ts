@@ -77,3 +77,11 @@ export const deleteProduct = createServerFn({ method: "POST" })
     await productsRepository.remove(id);
     return { id };
   });
+
+export const deleteProducts = createServerFn({ method: "POST" })
+  .validator((ids: unknown) => z.array(z.string().min(1)).min(1).parse(ids))
+  .handler(async ({ data: ids }) => {
+    await requireUser();
+    await Promise.all(ids.map((id) => productsRepository.remove(id)));
+    return { ids };
+  });

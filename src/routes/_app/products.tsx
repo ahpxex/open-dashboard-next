@@ -1,6 +1,7 @@
-import { PlusIcon } from "@phosphor-icons/react";
+import { PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import type { RowSelectionState } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -13,6 +14,7 @@ import {
 import { ProductFormDialog } from "@/features/products/ProductFormDialog";
 import {
   productsListQuery,
+  useBulkDeleteProducts,
   useDeleteProduct,
 } from "@/features/products/queries";
 import { productListParamsSchema } from "@/features/products/schema";
@@ -33,6 +35,7 @@ function ProductsPage() {
   const navigate = Route.useNavigate();
   const table = useTableSearch(search, navigate);
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const query = useQuery({
     ...productsListQuery(search),
@@ -40,6 +43,7 @@ function ProductsPage() {
   });
 
   const deleteProduct = useDeleteProduct();
+  const bulkDelete = useBulkDeleteProducts();
   const confirm = useConfirm();
 
   const columns = useMemo(
@@ -91,6 +95,32 @@ function ProductsPage() {
         onPageChange={table.setPage}
         onPageSizeChange={table.setPageSize}
         emptyMessage={productsTableConfig.emptyMessage}
+        enableRowSelection
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
+        getRowId={(product) => product.id}
+        selectionActions={(ids) => (
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={bulkDelete.isPending}
+            onClick={async () => {
+              const ok = await confirm({
+                title: `Delete ${ids.length} product${ids.length === 1 ? "" : "s"}?`,
+                description: "This action cannot be undone.",
+                confirmLabel: "Delete",
+                destructive: true,
+              });
+              if (ok) {
+                await bulkDelete.mutateAsync(ids);
+                setRowSelection({});
+              }
+            }}
+          >
+            <TrashIcon size={16} />
+            Delete selected
+          </Button>
+        )}
         toolbarActions={
           <Button onClick={() => setDialog({ mode: "create" })}>
             <PlusIcon size={16} />

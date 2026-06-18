@@ -4,10 +4,12 @@ import {
   flexRender,
   getCoreRowModel,
   type OnChangeFn,
+  type RowSelectionState,
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import type { ReactNode } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
@@ -51,6 +53,16 @@ export interface DataTableProps<T> {
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
 
+  // row selection / bulk actions (selection is transient UI, kept in local
+  // state by the parent — not the URL, unlike list/sort/filter/page)
+  enableRowSelection?: boolean;
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  /** Stable id per row (defaults to a synthetic index). */
+  getRowId?: (row: T) => string;
+  /** Bulk-action bar contents, shown when ≥1 row is selected. */
+  selectionActions?: (selectedIds: string[]) => ReactNode;
+
   toolbarActions?: ReactNode;
   emptyMessage?: string;
 }
@@ -80,6 +92,11 @@ export function DataTable<T>({
   pageSizeOptions = [10, 20, 50],
   onPageChange,
   onPageSizeChange,
+  enableRowSelection = false,
+  rowSelection = {},
+  onRowSelectionChange,
+  getRowId,
+  selectionActions,
   toolbarActions,
   emptyMessage = "No results.",
 }: DataTableProps<T>) {
@@ -92,16 +109,52 @@ export function DataTable<T>({
     onSearchChange ?? (() => {}),
   );
 
+  const tableColumns: ColumnDef<T, any>[] = enableRowSelection
+    ? [
+        {
+          id: "__select__",
+          enableSorting: false,
+          header: ({ table: t }) => (
+            <Checkbox
+              aria-label="Select all rows"
+              checked={t.getIsAllPageRowsSelected()}
+              indeterminate={t.getIsSomePageRowsSelected()}
+              onCheckedChange={(checked) =>
+                t.toggleAllPageRowsSelected(checked === true)
+              }
+            />
+          ),
+          cell: ({ row }) => (
+            <Checkbox
+              aria-label="Select row"
+              checked={row.getIsSelected()}
+              onCheckedChange={(checked) =>
+                row.toggleSelected(checked === true)
+              }
+            />
+          ),
+        },
+        ...columns,
+      ]
+    : columns;
+
   const table = useReactTable({
     data,
-    columns,
-    state: { sorting },
+    columns: tableColumns,
+    state: { sorting, rowSelection },
     onSortingChange,
+    enableRowSelection,
+    onRowSelectionChange,
+    getRowId,
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const selectedIds = Object.keys(rowSelection).filter(
+    (id) => rowSelection[id],
+  );
 
   const showToolbar =
     enableSearch ||
@@ -129,6 +182,17 @@ export function DataTable<T>({
           {toolbarActions ? (
             <div className="mb-4 shrink-0">{toolbarActions}</div>
           ) : null}
+        </div>
+      ) : null}
+
+      {enableRowSelection && selectedIds.length > 0 ? (
+        <div className="mb-4 flex items-center justify-between gap-3 border border-border bg-muted/40 px-3 py-2">
+          <span className="text-sm font-medium">
+            {selectedIds.length} selected
+          </span>
+          <div className="flex items-center gap-2">
+            {selectionActions?.(selectedIds)}
+          </div>
         </div>
       ) : null}
 
@@ -175,7 +239,7 @@ export function DataTable<T>({
             {isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={tableColumns.length}
                   className="h-32 text-center"
                 >
                   <Spinner />
@@ -184,7 +248,7 @@ export function DataTable<T>({
             ) : table.getRowModel().rows.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={tableColumns.length}
                   className="h-32 text-center text-sm text-muted-foreground"
                 >
                   {emptyMessage}
@@ -192,7 +256,10 @@ export function DataTable<T>({
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() ? "selected" : undefined}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
