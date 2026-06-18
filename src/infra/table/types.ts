@@ -1,4 +1,10 @@
-export type SortDir = "asc" | "desc";
+// The canonical list request/response shapes live in the data layer (the
+// Repository contract); re-exported here so table code has one import surface.
+export type {
+  ListParams,
+  ListResult,
+  SortDir,
+} from "@/infra/data/repository";
 
 export interface FilterOption {
   key: string;
@@ -10,20 +16,4 @@ export interface FilterConfig {
   label: string;
   placeholder?: string;
   options: FilterOption[];
-}
-
-/** Server-side list request parameters shared by every resource. */
-export interface ListParams {
-  page: number;
-  pageSize: number;
-  search?: string;
-  sortBy?: string;
-  sortDir?: SortDir;
-  filters?: Record<string, string>;
-}
-
-/** Server-side list response shape. */
-export interface ListResult<T> {
-  rows: T[];
-  total: number;
 }
