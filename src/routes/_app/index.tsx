@@ -2,31 +2,22 @@ import {
   ChartLineIcon,
   ClockIcon,
   CurrencyDollarIcon,
-  TrendDownIcon,
-  TrendUpIcon,
   UsersIcon,
 } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  Area,
   AreaChart,
-  Bar,
   BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
+  CHART_PRIMARY,
+  CHART_SECONDARY,
+  ChartCard,
   PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+  StatCard,
+  type StatCardProps,
+} from "@/components/charts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { useThemeColors } from "@/lib/color-theme";
 import {
   categoryData,
   monthlyRevenueData,
@@ -39,25 +30,13 @@ export const Route = createFileRoute("/_app/")({
 
 const trendUpBadge =
   "border-transparent bg-green-500/15 text-green-700 dark:text-green-400";
-const trendDownBadge = "border-transparent bg-destructive/15 text-destructive";
 
-type Stat = {
-  label: string;
-  value: string;
-  icon: typeof UsersIcon;
-  trend: string;
-  trendUp: boolean;
-  progress: number;
-  sub: string;
-};
-
-const STATS: Stat[] = [
+const STATS: StatCardProps[] = [
   {
     label: "Total Users",
     value: "1,234",
     icon: UsersIcon,
-    trend: "12%",
-    trendUp: true,
+    trend: { value: "12%", up: true },
     progress: 65,
     sub: "65% of monthly target",
   },
@@ -65,8 +44,7 @@ const STATS: Stat[] = [
     label: "Revenue",
     value: "$45,678",
     icon: CurrencyDollarIcon,
-    trend: "8%",
-    trendUp: true,
+    trend: { value: "8%", up: true },
     progress: 78,
     sub: "78% of monthly target",
   },
@@ -74,8 +52,7 @@ const STATS: Stat[] = [
     label: "Active Sessions",
     value: "432",
     icon: ClockIcon,
-    trend: "5%",
-    trendUp: true,
+    trend: { value: "5%", up: true },
     progress: 43,
     sub: "Peak: 542 sessions",
   },
@@ -83,8 +60,7 @@ const STATS: Stat[] = [
     label: "Conversion Rate",
     value: "3.24%",
     icon: ChartLineIcon,
-    trend: "2%",
-    trendUp: false,
+    trend: { value: "2%", up: false },
     progress: 32,
     sub: "Industry avg: 3.5%",
   },
@@ -99,7 +75,6 @@ const ACTIVITY = [
 
 function DashboardHome() {
   const { user } = Route.useRouteContext();
-  const themeColors = useThemeColors();
 
   return (
     <div className="flex flex-col gap-6">
@@ -120,177 +95,44 @@ function DashboardHome() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {STATS.map((stat) => {
-          const Icon = stat.icon;
-          const TrendIcon = stat.trendUp ? TrendUpIcon : TrendDownIcon;
-          return (
-            <Card key={stat.label}>
-              <CardContent className="flex flex-col gap-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="grid size-9 place-items-center border border-border bg-muted text-foreground">
-                      <Icon size={20} weight="duotone" />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {stat.label}
-                    </p>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={stat.trendUp ? trendUpBadge : trendDownBadge}
-                  >
-                    <TrendIcon size={14} />
-                    {stat.trend}
-                  </Badge>
-                </div>
-                <p className="text-3xl font-bold tracking-tight tabular-nums">
-                  {stat.value}
-                </p>
-                <Progress value={stat.progress} className="mt-1" />
-                <p className="text-xs text-muted-foreground">{stat.sub}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {STATS.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">
-              Revenue &amp; Users Trend
-            </CardTitle>
-            <Badge variant="secondary">Last 7 months</Badge>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart
-                data={monthlyRevenueData}
-                margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
-              >
-                <defs>
-                  <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor={themeColors.chartColors.primary}
-                      stopOpacity={0.3}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={themeColors.chartColors.primary}
-                      stopOpacity={0}
-                    />
-                  </linearGradient>
-                  <linearGradient id="usersFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor={themeColors.chartColors.secondary}
-                      stopOpacity={0.3}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={themeColors.chartColors.secondary}
-                      stopOpacity={0}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke={themeColors.chartColors.grid}
-                />
-                <XAxis
-                  dataKey="name"
-                  stroke={themeColors.chartColors.axis}
-                  fontSize={12}
-                />
-                <YAxis stroke={themeColors.chartColors.axis} fontSize={12} />
-                <Tooltip />
-                <Legend />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke={themeColors.chartColors.primary}
-                  strokeWidth={2}
-                  fill="url(#revenueFill)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="users"
-                  stroke={themeColors.chartColors.secondary}
-                  strokeWidth={2}
-                  fill="url(#usersFill)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <ChartCard
+          title="Revenue & Users Trend"
+          action={<Badge variant="secondary">Last 7 months</Badge>}
+        >
+          <AreaChart
+            data={monthlyRevenueData}
+            xKey="name"
+            series={[
+              { key: "revenue", label: "Revenue", color: CHART_PRIMARY },
+              { key: "users", label: "Users", color: CHART_SECONDARY },
+            ]}
+          />
+        </ChartCard>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Product Performance</CardTitle>
-            <Badge variant="secondary">Top 5 Products</Badge>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={categoryData}
-                margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke={themeColors.chartColors.grid}
-                />
-                <XAxis
-                  dataKey="name"
-                  stroke={themeColors.chartColors.axis}
-                  fontSize={12}
-                />
-                <YAxis stroke={themeColors.chartColors.axis} fontSize={12} />
-                <Tooltip />
-                <Bar dataKey="value" fill={themeColors.chartColors.primary} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <ChartCard
+          title="Product Performance"
+          action={<Badge variant="secondary">Top 5 Products</Badge>}
+        >
+          <BarChart
+            data={categoryData}
+            xKey="name"
+            bars={[{ key: "value", label: "Sales" }]}
+          />
+        </ChartCard>
       </div>
 
       {/* Bottom row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Traffic Sources</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={trafficSourceData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={(props) =>
-                    `${props.name} ${((props.percent ?? 0) * 100).toFixed(0)}%`
-                  }
-                  outerRadius={95}
-                  dataKey="value"
-                >
-                  {trafficSourceData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${entry.name}`}
-                      fill={
-                        themeColors.chartPalette[
-                          index % themeColors.chartPalette.length
-                        ]
-                      }
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <ChartCard title="Traffic Sources">
+          <PieChart data={trafficSourceData} nameKey="name" valueKey="value" />
+        </ChartCard>
 
         <Card>
           <CardHeader>
