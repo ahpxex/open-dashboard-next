@@ -15,27 +15,28 @@ catalogue of shapes (what an agent composes from).
 
 ## Where we are today (honest baseline)
 
-Implemented and verified:
+Implemented and verified (Phases 1–4):
 
 - **Stack**: TanStack Start + Router + Query + Table, Drizzle + Postgres,
   better-auth, shadcn-on-`@base-ui/react`, Tailwind v4.
-- **One page archetype**: server-driven **CRUD table** (`DataTable` + the
-  `features/<name>` pattern), proven by `products` (rich) and `orders` (generated).
-- **One generator**: `create-resource` (scaffold feature + route + table + sidebar).
-- **Descriptive docs**: `README`, `CLAUDE.md`, `AGENTS.md`, `docs/resources.md`.
+- **Atoms**: form system (TanStack Form + zod), toast (sonner), `useConfirm`,
+  chart components, `appConfig` rebrand surface — all unit-tested.
+- **Data adapters**: `Repository<T, TInput>` + `drizzleRepository` /
+  `restRepository` / `graphqlRepository`; `products`/`orders` on Drizzle, `posts`
+  on REST.
+- **Page archetypes**: CRUD table (URL-synced, debounced search, bulk select),
+  Detail/Show, Master-detail split, Card/grid list — each wired to a real resource.
+- **Generator**: `create-resource` emits the full pattern (repository, URL state,
+  form, confirm, toast), auto-formatted.
+- **Agent layer**: `.claude/skills/*`, `.claude/commands/*`, `PATTERNS.md`,
+  `PORTING.md`, prescriptive `CLAUDE.md`, `docs/data-adapters.md`.
 
-Not yet built (the subject of this roadmap):
+Not yet built (Phase 5 — hardening):
 
-- More page shapes (detail, master-detail, card list, …) — only the table exists.
-- Reusable **chart** components (charts are hand-written in the dashboard).
-- A **form system** (forms are hand-rolled `useState` + `zod.parse`).
-- **Toast** + **confirm dialog** (errors are inline; delete uses `window.confirm`).
-- **URL-synced** table state (filters/sort/page live in local `useState`).
-- A **data-source adapter** (data only comes from Drizzle).
-- An **agent layer**: `.claude/skills`, `.claude/commands`, a machine-readable
-  pattern catalogue, a porting/rebrand guide, prescriptive boundaries.
-- **Rebrand config** (`"Open Dashboard"` is hardcoded), **demo-strip**, **RBAC**,
-  **tests/CI**.
+- **RBAC** (`role` + `requireRole` gate + UI permission helper).
+- **CI** (GitHub Actions: typecheck + lint + build + test with a Postgres service).
+- **`strip-demo` command** (a script; the skill documents the manual steps today).
+- **Playwright** smoke tests (Vitest units exist; e2e is manual via Chrome MCP).
 
 ---
 
@@ -92,7 +93,11 @@ shapes portable to a different backend.
 Each phase ends green (`tsc` + `biome` + `build`) and, from Phase 5 on, with
 passing tests. The chosen priorities from planning are marked **★**.
 
-### Phase 1 — Atoms / foundations
+> **Status:** Phases 1–4 are ✅ complete (built, unit-tested, demoed on real
+> pages, and Chrome-MCP e2e-verified). Phase 5 (RBAC / CI / strip-demo command)
+> remains.
+
+### Phase 1 — Atoms / foundations ✅
 *Everything else reuses these; build them first.*
 - **Form system**: `@tanstack/react-form` + `zod` (Standard Schema) validators + reusable
   `<Form>` / `<FormField>` bound to the existing `ui/field`. Refactor the products dialog
@@ -106,7 +111,7 @@ passing tests. The chosen priorities from planning are marked **★**.
 - **App config + rebrand**: `src/config/app.ts` (name, logo, nav source, theme); remove
   hardcoded `"Open Dashboard"`.
 
-### Phase 2 — Data-source adapter ★ (portability-critical)
+### Phase 2 — Data-source adapter ★ (portability-critical) ✅
 - `Repository<T, TInput>` interface (`list/getOne/create/update/remove`) +
   `ListParams`/`ListResult` in `src/infra/data`.
 - `drizzleRepository(table, { searchColumns, sortColumns })`; refactor `products`/`orders`
@@ -115,7 +120,7 @@ passing tests. The chosen priorities from planning are marked **★**.
   REST API (e.g. `posts` via jsonplaceholder) to prove the path end-to-end.
 - Document the GraphQL variant (same interface, different adapter).
 
-### Phase 3 — Page-shape vocabulary ★
+### Phase 3 — Page-shape vocabulary ★ ✅
 *The three prioritised archetypes, each a reusable pattern + a real wired example.*
 - **Detail / Show** (`/<resource>/$id`): load one record + related data, edit entry point.
 - **Master-detail / nested**: list + side-panel or record-scoped tabs (nested routes).
@@ -123,7 +128,7 @@ passing tests. The chosen priorities from planning are marked **★**.
   as `DataTable` (shared `useResourceList` hook).
 - **Bulk select + bulk actions** on the table (row selection in URL state).
 
-### Phase 4 — Agent layer (the differentiator)
+### Phase 4 — Agent layer (the differentiator) ✅
 - `.claude/skills/`: `add-crud-resource`, `add-detail-page`, `add-card-list`,
   `add-master-detail`, `add-form`, `add-chart-page`, `add-data-source`, `rebrand`,
   `strip-demo`. Each: when-to-use, exact files, the canonical example, invariants, verify step.
