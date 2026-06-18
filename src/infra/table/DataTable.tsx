@@ -20,6 +20,7 @@ import {
 import { TablePaginationControls } from "./TablePaginationControls";
 import { TableToolbar } from "./TableToolbar";
 import type { FilterConfig } from "./types";
+import { useDebouncedSearch } from "./useDebouncedSearch";
 
 export interface DataTableProps<T> {
   columns: ColumnDef<T, any>[];
@@ -84,6 +85,13 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  // Buffer the search box locally and debounce writes to the (URL-backed)
+  // searchValue so fast typing stays responsive and doesn't drop keystrokes.
+  const [localSearch, handleSearchChange] = useDebouncedSearch(
+    searchValue,
+    onSearchChange ?? (() => {}),
+  );
+
   const table = useReactTable({
     data,
     columns,
@@ -108,8 +116,8 @@ export function DataTable<T>({
           <div className="flex-1">
             <TableToolbar
               enableSearch={enableSearch}
-              searchValue={searchValue}
-              onSearchChange={onSearchChange ?? (() => {})}
+              searchValue={localSearch}
+              onSearchChange={handleSearchChange}
               searchPlaceholder={searchPlaceholder}
               filters={filters}
               filterValues={filterValues}

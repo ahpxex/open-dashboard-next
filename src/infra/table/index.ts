@@ -5,6 +5,7 @@ export {
 } from "./TablePaginationControls";
 export { TableToolbar, type TableToolbarProps } from "./TableToolbar";
 export * from "./types";
+export { useDebouncedSearch } from "./useDebouncedSearch";
 export {
   type BaseListSearch,
   type TableSearchState,
