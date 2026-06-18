@@ -5,18 +5,32 @@ import {
 } from "@tanstack/react-query";
 import { toastError, toastSuccess } from "@/lib/toast";
 import type { OrderInput, OrderListParams, OrderUpdate } from "./schema";
-import { createOrders, deleteOrders, listOrders, updateOrders } from "./server";
+import {
+  createOrders,
+  deleteOrders,
+  getOrder,
+  listOrders,
+  updateOrders,
+} from "./server";
 
 export const ordersKeys = {
   all: ["orders"] as const,
   lists: () => [...ordersKeys.all, "list"] as const,
   list: (params: OrderListParams) => [...ordersKeys.lists(), params] as const,
+  detail: (id: string) => [...ordersKeys.all, "detail", id] as const,
 };
 
 export function ordersListQuery(params: OrderListParams) {
   return queryOptions({
     queryKey: ordersKeys.list(params),
     queryFn: () => listOrders({ data: params }),
+  });
+}
+
+export function orderDetailQuery(id: string) {
+  return queryOptions({
+    queryKey: ordersKeys.detail(id),
+    queryFn: () => getOrder({ data: id }),
   });
 }
 
