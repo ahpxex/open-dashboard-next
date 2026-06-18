@@ -5,6 +5,7 @@ import type { SortingState } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
   DialogClose,
@@ -79,16 +80,23 @@ function OrdersPage() {
     placeholderData: keepPreviousData,
   });
   const remove = useDeleteOrder();
+  const confirm = useConfirm();
 
   const columns = useMemo(
     () =>
       createOrdersColumns({
         onEdit: (row) => setDialog({ mode: "edit", row }),
-        onDelete: (row) => {
-          if (window.confirm(`Delete "${row.name}"?`)) remove.mutate(row.id);
+        onDelete: async (row) => {
+          const ok = await confirm({
+            title: `Delete “${row.name}”?`,
+            description: "This action cannot be undone.",
+            confirmLabel: "Delete",
+            destructive: true,
+          });
+          if (ok) remove.mutate(row.id);
         },
       }),
-    [remove],
+    [remove, confirm],
   );
 
   return (

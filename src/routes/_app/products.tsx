@@ -5,6 +5,7 @@ import type { SortingState } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
   DialogClose,
@@ -83,20 +84,23 @@ function ProductsPage() {
   });
 
   const deleteProduct = useDeleteProduct();
+  const confirm = useConfirm();
 
   const columns = useMemo(
     () =>
       createProductsColumns({
         onEdit: (product) => setDialog({ mode: "edit", product }),
-        onDelete: (product) => {
-          if (
-            window.confirm(`Delete “${product.name}”? This cannot be undone.`)
-          ) {
-            deleteProduct.mutate(product.id);
-          }
+        onDelete: async (product) => {
+          const ok = await confirm({
+            title: `Delete “${product.name}”?`,
+            description: "This action cannot be undone.",
+            confirmLabel: "Delete",
+            destructive: true,
+          });
+          if (ok) deleteProduct.mutate(product.id);
         },
       }),
-    [deleteProduct],
+    [deleteProduct, confirm],
   );
 
   return (
