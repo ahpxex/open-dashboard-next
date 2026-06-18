@@ -16,12 +16,12 @@ skill lives in `.claude/skills/` and this file links to it.
 
 | Pattern | Status | Use when | Canonical example | Skill |
 | --- | --- | --- | --- | --- |
-| **CRUD table** | ✅ | List rows with server-side paginate/sort/search/filter + create/edit/delete | `features/products`, `routes/_app/products.tsx` | `add-crud-resource` 🚧 |
-| **Detail / Show** | 🚧 | View one record (`/<resource>/$id`) + related data, edit entry | — | `add-detail-page` 🚧 |
-| **Master-detail / nested** | 🚧 | List + record detail in a side panel or record-scoped tabs | — | `add-master-detail` 🚧 |
-| **Card / grid list** | 🚧 | Gallery of cards (same data plumbing as the table) | — | `add-card-list` 🚧 |
-| **Form page** | 🚧 | Full-page create/edit (vs. dialog) | products dialog (interim) | `add-form` 🚧 |
-| **Chart page** | 🚧 | Dashboard/analytics view from datasets | `routes/_app/index.tsx` (interim, inline) | `add-chart-page` 🚧 |
+| **CRUD table** | ✅ | List rows with server-side paginate/sort/search/filter + create/edit/delete + bulk select | `features/products`, `routes/_app/products.tsx` | `add-crud-resource` |
+| **Detail / Show** | ✅ | View one record (`/<resource>/$id`) + edit/delete entry | `routes/_app/products_.$id.tsx` | `add-detail-page` |
+| **Master-detail / nested** | ✅ | List + record detail in a side panel (selection in URL) | `routes/_app/orders.tsx` + `orders.$id.tsx` | `add-master-detail` |
+| **Card / grid list** | ✅ | Gallery of cards (same data plumbing as the table) | `routes/_app/posts.tsx` + `features/posts/cards.tsx` | `add-card-list` |
+| **Form page / dialog** | ✅ | Create/edit via a shared keyed-remount dialog (or full-page route) | `features/products/ProductFormDialog.tsx` | `add-form` |
+| **Chart page** | ✅ | Dashboard/analytics view from datasets | `routes/_app/index.tsx` (chart components) | `add-chart-page` |
 
 ### Building blocks (atoms every pattern uses)
 

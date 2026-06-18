@@ -1,5 +1,4 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import type { RowSelectionState } from "@tanstack/react-table";
+import type { ColumnDef, RowSelectionState } from "@tanstack/react-table";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";

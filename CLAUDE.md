@@ -40,7 +40,7 @@ Every data resource is a self-contained folder under `src/features/<name>/`, pai
 | File | Responsibility |
 | --- | --- |
 | `schema.ts` | Zod schemas + inferred types: input, update, and list-params (page/pageSize/search/sort/filter). |
-| `server.ts` | `createServerFn` handlers (`list*`, `get*`, `create*`, `update*`, `delete*`). Each calls `requireUser()`, validates input via `.validator(...)` with the Zod schema, and uses Drizzle. List uses a **whitelist of sortable columns** (never sort by raw user input), `ilike` search, `count()` for total, and offset pagination. Returns `{ rows, total }`. |
+| `server.ts` | `createServerFn` handlers (`list*`, `get*`, `create*`, `update*`, `delete*`). Each calls `requireUser()`, validates input via `.validator(...)`, and delegates to a **`Repository` adapter** — `drizzleRepository(table, { searchColumns, sortColumns, filterColumns, defaultSort, updatedAtKey })` for Postgres (imported from `@/infra/data/drizzle-repository`), or `restRepository`/`graphqlRepository` for external APIs. Returns `{ rows, total }`. |
 | `queries.ts` | TanStack Query glue: a `*Keys` factory, a `*ListQuery(params)` returning `queryOptions`, and `useCreate*`/`useUpdate*`/`useDelete*` mutation hooks that invalidate the resource's keys on success. |
 | `columns.tsx` | `ColumnDef[]` factory taking a context (`onEdit`/`onDelete`). Uses shared cells from `@/infra/ui` (`StatusChip`, `ActionMenu`). |
 | `config.ts` | Filter definitions (`FilterConfig[]`) and table config (search placeholder, page-size options, empty message). |
@@ -53,7 +53,18 @@ The DB table itself goes in `src/db/schema.ts` alongside `products`.
 
 ### Sidebar
 
-Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottomMenuItems`). New resources add an item to `mainMenuItems`; the line `// create-resource:anchor` marks where the generator inserts entries.
+Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottomMenuItems`), surfaced via `appConfig.nav`. New resources add an item to `mainMenuItems`; the line `// create-resource:anchor` marks where the generator inserts entries.
+
+### Platform layers (compose from these — don't reinvent)
+
+- **Atoms** (`src/components`, `src/config`): the form system (`@/components/form` — TanStack Form + zod; `TextField`/`NumberField`/`SelectField`/`TextareaField`/`SubmitButton`/`FormError`), toast (`@/lib/toast` → sonner), `useConfirm()` (`@/components/ui/confirm-dialog`), chart components (`@/components/charts` — `StatCard`/`ChartCard`/`AreaChart`/`BarChart`/`PieChart`, CSS-var themed), and `appConfig` (`src/config/app.ts` — the single rebrand surface: name/logo/nav/theme).
+- **Data access** (`src/infra/data`): the `Repository<T, TInput>` interface + `drizzleRepository` / `restRepository` / `graphqlRepository` adapters over `ListParams`/`ListResult`. See `docs/data-adapters.md`.
+- **List views** (`src/infra/table`, `src/infra/list`): `DataTable` (server-driven, URL-synced via `useTableSearch`, debounced search, opt-in bulk select) and `CardList` + `useResourceList` (the gallery counterpart, same plumbing).
+- **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each has a skill in `.claude/skills/`. Catalogue: `PATTERNS.md`.
+
+### Agent layer
+
+`.claude/skills/*` (one per archetype/operation: `add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-form`, `add-chart-page`, `add-data-source`, `rebrand`, `strip-demo`), `.claude/commands/*` (`/add-resource`, `/port`), `PATTERNS.md` (the catalogue), and `PORTING.md` (how to start a real product). Find the closest pattern, copy its canonical example, follow its invariants.
 
 ## How to add a resource
 
@@ -64,21 +75,43 @@ Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottom
 
 Or run `bun run create-resource <name>` to scaffold all of the above — it also appends the Drizzle table to `src/db/schema.ts`; after generating, customise the fields and run `bun run db:generate && bun run db:migrate`. Full walkthrough: `docs/resources.md`.
 
-## Key conventions
+## Conventions (prescriptive)
 
-- **Always** call `requireUser()` inside protected server-fn handlers; **never** trust raw client input — validate with Zod via `.validator(...)`.
-- Server functions are imported and called directly from query/mutation hooks (`fn({ data })`) — no manual fetch/REST layer.
-- Keep the route tree generated; don't hand-edit `src/routeTree.gen.ts`.
-- Use the `@/*` alias for imports. Run `bun run check` (Biome) before finishing.
-- Don't reintroduce Next.js, Hero UI, TypeORM, or Refine — none are used. shadcn/ui here is built on `@base-ui/react`, not Radix.
+**ALWAYS**
+- Call `requireUser()` first in every protected server-fn handler, and validate
+  input with Zod via `.validator(...)`. Data crosses the client↔server boundary
+  only through `createServerFn` — there is no manual fetch/REST layer.
+- Keep list/sort/filter/page state in the URL (`validateSearch` +
+  `useTableSearch`/`useResourceList`), not local `useState`. (Multi-row *selection*
+  is the one exception — it's transient local state.)
+- Report mutations with a toast and route destructive actions through
+  `useConfirm()`. Invalidate the resource's query keys on success.
+- Use a `Repository` adapter in `server.ts` (never inline Drizzle/`fetch` in a
+  resource). Import `drizzleRepository` from `@/infra/data/drizzle-repository`.
+- Compose from the platform layers above (form system, charts, `DataTable`/
+  `CardList`, archetypes). Find the closest pattern in `PATTERNS.md` and copy it.
+- Use the `@/*` alias. Before finishing, run `bun run typecheck && bun run check
+  && bun run test` (and `bun run build` for infra changes).
+
+**NEVER**
+- Import `@/db` (or the Drizzle adapter) from a client-reachable module — it
+  leaks `pg` into the browser. Adapters/secrets stay in server fns only.
+- Hand-edit `src/routeTree.gen.ts` (it's generated).
+- Hardcode the brand — change `src/config/app.ts`.
+- Reintroduce Next.js, Hero UI, TypeORM, or Refine. shadcn/ui here is built on
+  `@base-ui/react`, **not** Radix.
+- Sort by raw user input — use the adapter's `sortColumns` whitelist.
 
 ## Commands
 
 - `bun run dev` — dev server (port 3000).
 - `bun run db:up` / `bun run db:down` — start/stop local Postgres (Docker Compose).
 - `bun run db:generate` / `db:migrate` / `db:push` / `db:studio` — Drizzle migrations & Studio.
-- `bun run db:seed` — seed demo products.
+- `bun run db:seed` — seed demo products + a dev account.
 - `bun run build` / `bun run start` — production build / run Nitro server.
 - `bun run check` / `lint` / `format` — Biome.
+- `bun run typecheck` — `tsc --noEmit`. `bun run test` — Vitest.
 
-See `README.md` for full setup and `docs/resources.md` for the resource guide.
+See `README.md` for full setup, `docs/resources.md` for the resource guide,
+`docs/data-adapters.md` for backends, `PATTERNS.md` for the shape catalogue, and
+`PORTING.md` to start a real product.
