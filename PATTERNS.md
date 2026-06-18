@@ -30,7 +30,7 @@ skill lives in `.claude/skills/` and this file links to it.
 | `DataTable` | ✅ | `src/infra/table/DataTable.tsx` — generic controlled table |
 | `StatusChip`, `ActionMenu` | ✅ | `src/infra/ui/*` |
 | UI primitives (28) | ✅ | `src/components/ui/*` (shadcn-on-base-ui) |
-| **Form system** (rhf + zod + `<FormField>`) | 🚧 | Phase 1 |
+| **Form system** (TanStack Form + zod + `<FormField>`) | 🚧 | Phase 1 |
 | **Toast** | 🚧 | Phase 1 — mutation success/error |
 | **`<ConfirmDialog>` / `useConfirm()`** | 🚧 | Phase 1 — replaces `window.confirm` |
 | **Chart components** (`Area/Bar/Pie/StatCard`) | 🚧 | Phase 1 — `components/charts/*` |
@@ -114,8 +114,9 @@ existing toolbar + pagination controls. Use for galleries, people, products-as-c
 
 ## 🚧 Atoms (build targets, condensed)
 
-- **Form system** — `<Form>` (wraps `useForm` + zodResolver) + `<FormField name>` bound to
-  `ui/field`/`ui/label`; surfaces server validation errors. Replaces hand-rolled forms.
+- **Form system** — `<Form>` (wraps TanStack Form's `useForm` with zod Standard-Schema
+  validators) + `<FormField name>` bound to `ui/field`/`ui/label`; surfaces server validation
+  errors. Replaces hand-rolled forms.
 - **Toast** — `toast.success/error`; mutations report through it.
 - **ConfirmDialog** — `const ok = await confirm({title, description, destructive})`.
 - **Charts** — `components/charts/{AreaChart,BarChart,PieChart,StatCard}.tsx`, themed via

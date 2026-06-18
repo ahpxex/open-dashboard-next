@@ -94,9 +94,10 @@ passing tests. The chosen priorities from planning are marked **★**.
 
 ### Phase 1 — Atoms / foundations
 *Everything else reuses these; build them first.*
-- **Form system**: `react-hook-form` + `zod` resolver + reusable `<Form>` / `<FormField>`
-  bound to the existing `ui/field`. Refactor the products dialog onto it as the reference.
-- **Toast** (`sonner` or a small store) mounted in the shell; success/error on mutations.
+- **Form system**: `@tanstack/react-form` + `zod` (Standard Schema) validators + reusable
+  `<Form>` / `<FormField>` bound to the existing `ui/field`. Refactor the products dialog
+  onto it as the reference.
+- **Toast** (`sonner`) mounted in the shell; success/error on mutations.
 - **`<ConfirmDialog>`** + a `useConfirm()` hook — replace `window.confirm`.
 - **URL-synced table state**: move page/pageSize/search/sort/filters into route
   `validateSearch`; refactor `products`/`orders`.
@@ -141,11 +142,12 @@ passing tests. The chosen priorities from planning are marked **★**.
 
 ---
 
-## Open decisions (to confirm as we go)
-- Form lib: **react-hook-form** (mature, ubiquitous) vs TanStack Form (in-ecosystem).
-  Leaning rhf for agent familiarity.
-- Toast: **sonner** (drop-in) vs a tiny in-house store. Leaning sonner.
-- RBAC depth: simple role enum first; org/multi-tenant later only if needed.
+## Resolved decisions
+- **Form lib: TanStack Form** (`@tanstack/react-form`) — stays in the TanStack ecosystem
+  alongside Router / Query / Table; zod wired via Standard Schema validators.
+- **Toast: sonner** — drop-in, mounted once in the shell.
+- **RBAC: simple `role` enum first** (e.g. `admin` / `member`) + a `requireRole` gate;
+  org / multi-tenant added later only if a real project needs it.
 
 ---
 
