@@ -67,7 +67,7 @@ function ErrorShowcase() {
   const ErrorIcon = detail.icon;
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 p-6 text-center">
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center">
       <ErrorIcon size={56} className="text-muted-foreground" weight="duotone" />
       <p className="font-heading text-6xl font-semibold tracking-tight">
         {code}
