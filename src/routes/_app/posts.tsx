@@ -1,8 +1,7 @@
 import { PlusIcon } from "@phosphor-icons/react";
 import { useForm } from "@tanstack/react-form";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   FormError,
   NumberField,
@@ -21,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { createPostsColumns } from "@/features/posts/columns";
+import { PostCard } from "@/features/posts/cards";
 import { postsFilters, postsTableConfig } from "@/features/posts/config";
 import {
   postsListQuery,
@@ -36,7 +35,7 @@ import {
   postInputSchema,
   postListParamsSchema,
 } from "@/features/posts/schema";
-import { DataTable, useTableSearch } from "@/infra/table";
+import { CardList, useResourceList } from "@/infra/list";
 import { errorMessage } from "@/lib/toast";
 
 export const Route = createFileRoute("/_app/posts")({
@@ -52,58 +51,53 @@ type DialogState = { mode: "create" | "edit"; post?: Post } | null;
 function PostsPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  const table = useTableSearch(search, navigate);
+  const { table, rows, total, isLoading, refetch } = useResourceList<
+    typeof search,
+    Post
+  >(search, navigate, postsListQuery);
   const [dialog, setDialog] = useState<DialogState>(null);
 
-  const query = useQuery({
-    ...postsListQuery(search),
-    placeholderData: keepPreviousData,
-  });
   const remove = useDeletePost();
   const confirm = useConfirm();
 
-  const columns = useMemo(
-    () =>
-      createPostsColumns({
-        onEdit: (post) => setDialog({ mode: "edit", post }),
-        onDelete: async (post) => {
-          const ok = await confirm({
-            title: `Delete this post?`,
-            description: post.title,
-            confirmLabel: "Delete",
-            destructive: true,
-          });
-          if (ok) remove.mutate(post.id);
-        },
-      }),
-    [remove, confirm],
-  );
+  const cardContext = {
+    onEdit: (post: Post) => setDialog({ mode: "edit", post }),
+    onDelete: async (post: Post) => {
+      const ok = await confirm({
+        title: "Delete this post?",
+        description: post.title,
+        confirmLabel: "Delete",
+        destructive: true,
+      });
+      if (ok) remove.mutate(post.id);
+    },
+  };
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-semibold">Posts</h1>
         <p className="text-sm text-muted-foreground">
-          A resource backed by a public REST API (jsonplaceholder) via the{" "}
-          <code>restRepository</code> adapter — same shapes, different backend.
-          Reads are live; writes are echoed but not persisted.
+          The Card/grid list archetype, backed by a public REST API
+          (jsonplaceholder) via the <code>restRepository</code> adapter — same
+          query/filter/paginate plumbing as the table. Reads are live; writes
+          are echoed but not persisted.
         </p>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={query.data?.rows ?? []}
-        total={query.data?.total ?? 0}
-        isLoading={query.isLoading || query.isFetching}
+      <CardList
+        data={rows}
+        total={total}
+        isLoading={isLoading}
+        getKey={(post) => post.id}
+        renderCard={(post) => <PostCard post={post} context={cardContext} />}
         searchValue={search.search}
         onSearchChange={table.setSearch}
         searchPlaceholder={postsTableConfig.searchPlaceholder}
         filters={postsFilters}
         filterValues={{ userId: search.userId }}
         onFilterChange={table.setFilter}
-        onRefresh={() => query.refetch()}
-        sorting={table.sorting}
-        onSortingChange={table.onSortingChange}
+        onRefresh={refetch}
         page={search.page}
         pageSize={search.pageSize}
         pageSizeOptions={postsTableConfig.pageSizeOptions}

@@ -16,7 +16,7 @@ export interface BaseListSearch {
   sortDir?: SortDir;
 }
 
-type SearchNavigate<TSearch> = (opts: {
+export type SearchNavigate<TSearch> = (opts: {
   search: (prev: TSearch) => TSearch;
 }) => unknown;
 

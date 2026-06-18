@@ -8,6 +8,7 @@ export * from "./types";
 export { useDebouncedSearch } from "./useDebouncedSearch";
 export {
   type BaseListSearch,
+  type SearchNavigate,
   type TableSearchState,
   useTableSearch,
 } from "./useTableSearch";
