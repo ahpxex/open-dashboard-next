@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { AreaChart } from "./AreaChart";
-import { BarChart } from "./BarChart";
+import { BAR_TO_LINE_THRESHOLD, BarChart, barRendersAsLine } from "./BarChart";
 import { ChartCard } from "./ChartCard";
+import { LineChart } from "./LineChart";
 import { PieChart } from "./PieChart";
 
 const series = [
@@ -58,5 +59,28 @@ describe("chart wrappers mount without throwing", () => {
     expect(
       container.querySelector(".recharts-responsive-container"),
     ).toBeTruthy();
+  });
+
+  it("LineChart mounts a responsive container", () => {
+    const { container } = render(
+      <LineChart data={series} xKey="name" series={[{ key: "revenue" }]} />,
+    );
+    expect(
+      container.querySelector(".recharts-responsive-container"),
+    ).toBeTruthy();
+  });
+});
+
+describe("BarChart → line house rule (≤ 8 categories render as a line)", () => {
+  it("uses a line at or below the threshold, bars above it", () => {
+    expect(barRendersAsLine(BAR_TO_LINE_THRESHOLD)).toBe(true);
+    expect(barRendersAsLine(BAR_TO_LINE_THRESHOLD - 1)).toBe(true);
+    expect(barRendersAsLine(1)).toBe(true);
+    expect(barRendersAsLine(BAR_TO_LINE_THRESHOLD + 1)).toBe(false);
+  });
+
+  it("forceBars opts out of the rule", () => {
+    expect(barRendersAsLine(2, true)).toBe(false);
+    expect(barRendersAsLine(BAR_TO_LINE_THRESHOLD, true)).toBe(false);
   });
 });

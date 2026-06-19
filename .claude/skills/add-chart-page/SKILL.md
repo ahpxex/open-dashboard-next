@@ -12,8 +12,10 @@ Canonical example: `src/routes/_app/index.tsx`. Components in
 
 - `StatCard` — KPI card: `{ label, value, icon?, trend?: {value, up}, progress?, sub? }`.
 - `ChartCard` — titled panel wrapper: `{ title, action?, children }`.
-- `AreaChart` / `BarChart` / `PieChart` — generic over the row type; keys are
-  type-checked against the data (`xKey`, `series`/`bars` keys, `nameKey`/`valueKey`).
+- `AreaChart` / `LineChart` / `BarChart` / `PieChart` — generic over the row type;
+  keys are type-checked against the data (`xKey`, `series`/`bars` keys,
+  `nameKey`/`valueKey`). `LineChart` is a plain line (no fill); `AreaChart` is a
+  line with a gradient fill.
 
 ## Pattern
 
@@ -32,6 +34,11 @@ Canonical example: `src/routes/_app/index.tsx`. Components in
 
 ## Invariants
 
+- **Few bars → line (house rule).** With ≤ `BAR_TO_LINE_THRESHOLD` (8) categories,
+  `BarChart` renders a `LineChart` automatically — a handful of points reads
+  cleaner as a line. Pass `forceBars` only when bar length is the point (e.g. a
+  ranking). Reach for `BarChart` for many discrete categories, `AreaChart`/
+  `LineChart` for trends.
 - Charts are **themed entirely via CSS variables** (`--chart-1..5`, `--border`,
   `--popover`) and re-theme with the `.dark` class — never hardcode colours or
   read the JS theme. Use `CHART_PRIMARY`/`CHART_SECONDARY` for prominent series,
