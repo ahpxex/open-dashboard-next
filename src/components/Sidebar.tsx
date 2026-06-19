@@ -32,7 +32,6 @@ const ACTIVE_CLASSES =
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const Logo = appConfig.logo;
 
   const renderMenuItem = (item: MenuItem) => {
     const Icon = item.icon;
@@ -58,14 +57,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-16 justify-center border-b border-sidebar-border">
-        <div className="flex items-center gap-2.5">
-          <div className="grid size-8 shrink-0 place-items-center bg-primary text-primary-foreground">
-            <Logo size={18} weight="fill" />
-          </div>
-          <span className="truncate text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
-            {appConfig.name}
-          </span>
-        </div>
+        <span className="truncate px-1 text-base font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
+          {appConfig.name}
+        </span>
       </SidebarHeader>
 
       <SidebarContent>

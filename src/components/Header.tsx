@@ -4,7 +4,6 @@ import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useCommandMenu } from "@/stores/command-menu";
-import { NotificationButton } from "./NotificationButton";
 import { UserAvatar } from "./UserAvatar";
 
 export function Header() {
@@ -28,7 +27,6 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          <NotificationButton />
           <UserAvatar />
         </div>
       </div>
