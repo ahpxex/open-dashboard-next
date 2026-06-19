@@ -1,29 +1,41 @@
 ---
 name: add-virtual-table
-description: Add a virtualized / windowed table that stays smooth with thousands of rows by rendering only the visible slice. Use when a list/table can hold 1000s of rows client-side.
+description: Add a virtualized / windowed table that stays smooth with thousands of rows by rendering only the visible slice. Use when a list/table can hold 1000s of rows client-side. Ships a copy-ready template.
 ---
 
 # Add a virtualized table
 
 When a dataset is large enough that rendering every row janks, window it: render
-only the rows in (and just around) the viewport, with spacers for the rest.
-
-**Canonical example**: `src/routes/_app/gallery/table-virtual.tsx` — 5000
-deterministic rows, a fixed-height scroll container with fixed row height,
-scroll-driven visible-slice computation + overscan, top/bottom spacer rows, a
-sticky header, and total/visible counters. No extra dependency.
+only the rows in (and just around) the viewport, with spacers for the rest. The
+full page — hand-rolled windowing, no extra dependency — is **bundled** at
+`templates/table-virtual.tsx` — copy, don't paste.
 
 ## Add one
 
-1. Copy the canonical file; set your row height + column set.
-2. Feed it your rows (for a real resource, fetch a large page once or stream).
-3. Add a sidebar entry.
+```bash
+cp .claude/skills/add-virtual-table/templates/table-virtual.tsx src/routes/_app/<name>.tsx
+```
+
+1. Set the `createFileRoute("/_app/<name>")` path to match the file path.
+2. Set the row shape (`Row`), `ROW_HEIGHT`, and the column set; swap the sample
+   `ROWS` for yours.
+3. Real resource: feed it your rows — fetch one large page from a `Repository` (or
+   stream) into the array.
+
+(Only open the template if you need to customise it — copying costs no context.)
+
+## Foundation it assumes
+
+`@/components/ui/table` (`Table`/`TableHeader`/`TableBody`/`TableRow`/`TableHead`/
+`TableCell`), the page-shell heading (`font-heading text-2xl …` + muted `<p>`), and
+theme tokens (`border-border`, `bg-card`, `text-muted-foreground`).
 
 ## Invariants
 
-- Row height is fixed (windowing math depends on it); keep a small overscan.
-- Header stays sticky; show total + visible counts.
-- No new dependency — the windowing is hand-rolled and self-contained.
+- Row height is fixed (`ROW_HEIGHT` — the windowing math depends on it); keep a
+  small `OVERSCAN`.
+- Top/bottom spacer rows preserve total scroll height; the header stays sticky.
+- Show total + visible counts. No new dependency — the windowing is self-contained.
 
 ## Verify
 

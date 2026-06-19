@@ -1,43 +1,64 @@
 ---
 name: add-form
-description: Build a validated form (create/edit dialog or full-page) with TanStack Form + zod and the bound field components. Use whenever you need user input with validation and server-error handling.
+description: Build a validated form (create/edit dialog or full-page) with TanStack Form + zod and the bound field components. Use whenever you need user input with validation and server-error handling. Ships copy-ready templates.
 ---
 
 # Add a form
 
-Canonical example: `src/features/products/ProductFormDialog.tsx`. Built on
-`@/components/form` (TanStack Form + zod).
+A validated form built on `@/components/form` (TanStack Form + zod) with bound
+fields, a server-error slot, and a submit disabled while invalid. Five full-page
+variants are **bundled** under `templates/` — copy the one that fits, don't paste
+code from here.
 
-## Pattern
+Pick a variant:
 
-```tsx
-const form = useForm({
-  defaultValues: toForm(record),            // values match the form schema's types
-  validators: { onChange: <name>FormSchema }, // non-coercing zod (input === value type)
-  onSubmit: async ({ value }) => {
-    setServerError(null);
-    const payload = <name>InputSchema.parse(value); // coercing parse on submit
-    try { await mutateAsync(payload); onDone(); }
-    catch (err) { setServerError(errorMessage(err)); }
-  },
-});
+- `form-page.tsx` — **full-page form** on its own route (the page counterpart of
+  the create/edit dialog). The default starting point.
+- `form-scroll.tsx` — **long scrollable form**: sticky header + sticky footer
+  action bar with a scrolling body, split into sections. For forms too tall for
+  one screen.
+- `form-fixed.tsx` — **compact form**: short, fixed-height, sized to its content
+  with no scrolling. For quick create flows surfaced as a page.
+- `form-array.tsx` — **field array**: a repeatable list of rows (add/remove,
+  edit in place, live computed total). For variable-length inputs like line items.
+- `form-actions.tsx` — **multiple submit actions**: one form, several footer
+  buttons (Save / Save as draft / Save & new) that branch the same handler.
+
+## Add one
+
+```bash
+cp .claude/skills/add-form/templates/form-page.tsx src/routes/_app/<name>.tsx
 ```
 
-Render with the bound fields (they wire label + error + value to the form):
+(Swap `form-page.tsx` for `form-scroll.tsx`, `form-fixed.tsx`, `form-array.tsx`,
+or `form-actions.tsx` per the list above.)
 
-```tsx
-<form onSubmit={(e) => { e.preventDefault(); e.stopPropagation(); form.handleSubmit(); }}>
-  <FormError message={serverError} />
-  <TextField form={form} name="name" label="Name" required />
-  <NumberField form={form} name="price" label="Price" min={0} step="0.01" required />
-  <SelectField form={form} name="status" label="Status" options={statusOptions} />
-  <TextareaField form={form} name="description" label="Description" />
-  <SubmitButton form={form}>Save</SubmitButton>
-</form>
-```
+Then in the copied file:
+1. Set the `createFileRoute("/_app/<name>")` path to match the file path (the
+   templates point at `/_app/gallery/...`).
+2. Replace the demo `schema` / `Values` / `EMPTY` and the rendered fields with
+   your own. Keep the field components (`TextField`/`NumberField`/`SelectField`/
+   `TextareaField`) and the `FormError` + `SubmitButton` wiring.
+3. Real resource: the templates report the payload via a `toast` instead of
+   persisting. Swap `onSubmit` to parse with the resource's coercing
+   `*InputSchema` and call its `useCreate*`/`useUpdate*` mutation
+   (`await mutateAsync(payload)`), surfacing failures through `setServerError`.
+   In a dialog, render the `<…Form>` with `key={record?.id ?? "new"}` so it
+   remounts (clean reset) each time it opens.
 
-In a dialog, render the `<…Form>` with `key={record?.id ?? "new"}` so it
-remounts (clean reset) each time the dialog opens.
+A real resource form also needs a matching `features/<name>/` resource
+(`schema.ts`/`server.ts`/`queries.ts`) — `add-crud-resource` / `create-resource`
+scaffolds it.
+
+(Only open a template if you need to customise it — copying it costs no context.)
+
+## Foundation it assumes
+
+`@/components/form` (`FormError`, `TextField`, `NumberField`, `SelectField`,
+`TextareaField`, `SubmitButton`), `@/components/ui/{button,card,input,label}`,
+`@/lib/toast`, `@tanstack/react-form` (`useForm`), `@phosphor-icons/react`, the
+page-shell heading, and theme tokens (`text-muted-foreground`, `border-border`,
+`bg-card`) — all provided by the base.
 
 ## Invariants
 
@@ -51,5 +72,5 @@ remounts (clean reset) each time the dialog opens.
 
 ## Verify
 
-`bun run typecheck && bun run check && bun run test`. Submit empty → field errors
-+ disabled submit; fill valid → submits.
+`bun run typecheck && bun run check`, then `bun run dev` — submit empty → field
+errors + disabled submit; fill valid → submits.
