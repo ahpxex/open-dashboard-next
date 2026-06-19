@@ -61,3 +61,23 @@ export const auth = betterAuth({
   // tanstackStartCookies must be the LAST plugin so it can flush Set-Cookie.
   plugins: [tanstackStartCookies()],
 });
+
+/**
+ * Zero-config dev convenience: in memory mode there is no `db:seed`, so the
+ * account behind the login page's "Dev quick login" button (dev@example.com /
+ * password) would not exist. Seed it once at startup so the button works out of
+ * the box. Never runs with a real database or in production.
+ */
+if (!hasDatabase && process.env.NODE_ENV !== "production") {
+  void auth.api
+    .signUpEmail({
+      body: {
+        email: "dev@example.com",
+        password: "password",
+        name: "Dev User",
+      },
+    })
+    .catch(() => {
+      // Already seeded (e.g. on hot reload) — ignore.
+    });
+}
