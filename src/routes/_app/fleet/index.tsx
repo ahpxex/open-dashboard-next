@@ -21,12 +21,7 @@ import { devicesListQuery } from "@/features/devices/queries";
 import { allDevicesParams, type DeviceStatus } from "@/features/devices/schema";
 
 export const Route = createFileRoute("/_app/fleet/")({
-  loader: async ({ context }) => {
-    await Promise.all([
-      context.queryClient.ensureQueryData(devicesListQuery(allDevicesParams)),
-      context.queryClient.ensureQueryData(alertsListQuery(allAlertsParams)),
-    ]);
-  },
+  // Device data (10k rows) is fetched client-side; not embedded in SSR.
   component: FleetOverview,
 });
 

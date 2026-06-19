@@ -26,8 +26,8 @@ import {
 import { type ChipColor, StatusChip } from "@/infra/ui";
 
 export const Route = createFileRoute("/_app/fleet/devices")({
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(devicesListQuery(allDevicesParams)),
+  // The full fleet (10k rows) is fetched client-side and virtualized — too large
+  // to embed in the SSR payload, so there is no loader prefetch here.
   component: DevicesTable,
 });
 
@@ -114,8 +114,9 @@ function DevicesTable() {
           </SelectContent>
         </Select>
         <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-          {rowCount.toLocaleString()} of {devices.length.toLocaleString()}{" "}
-          devices · rendering {slice.length}
+          {query.isLoading
+            ? "Loading devices…"
+            : `${rowCount.toLocaleString()} of ${devices.length.toLocaleString()} devices · rendering ${slice.length}`}
         </span>
       </div>
 

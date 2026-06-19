@@ -143,7 +143,7 @@ function CodeForm({
           form={form}
           name="discountPercent"
           label="Discount %"
-          min={1}
+          min={0}
           max={100}
           required
         />

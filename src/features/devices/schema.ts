@@ -17,7 +17,7 @@ export type Device = {
 
 export const deviceListParamsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(5000).default(2000),
+  pageSize: z.coerce.number().int().min(1).max(20000).default(10000),
   search: z.string().optional().default(""),
   sortBy: z.string().optional(),
   sortDir: z.enum(["asc", "desc"]).optional(),
@@ -27,7 +27,7 @@ export type DeviceListParams = z.infer<typeof deviceListParamsSchema>;
 
 export const allDevicesParams: DeviceListParams = {
   page: 1,
-  pageSize: 2000,
+  pageSize: 10000,
   search: "",
   status: "",
 };

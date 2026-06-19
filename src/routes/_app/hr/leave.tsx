@@ -8,6 +8,7 @@ import { LeaveFormDialog } from "@/features/leave-requests/LeaveFormDialog";
 import { leaveRequestsListQuery } from "@/features/leave-requests/queries";
 import {
   allLeaveParams,
+  type LeaveRequest,
   type LeaveType,
 } from "@/features/leave-requests/schema";
 import { cn } from "@/lib/utils";
@@ -42,13 +43,21 @@ const TYPE_VARIANT: Record<LeaveType, "default" | "secondary" | "outline"> = {
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
+type DialogState = {
+  open: boolean;
+  mode: "create" | "edit";
+  leave?: LeaveRequest;
+  date: string;
+};
+
 function LeaveCalendar() {
   const query = useQuery(leaveRequestsListQuery(allLeaveParams));
   const leave = query.data?.rows ?? [];
 
   const [ref, setRef] = useState({ year: 2026, month: 5 });
-  const [dialog, setDialog] = useState<{ open: boolean; date: string }>({
+  const [dialog, setDialog] = useState<DialogState>({
     open: false,
+    mode: "create",
     date: "",
   });
 
@@ -64,7 +73,7 @@ function LeaveCalendar() {
 
   const byDay = useMemo(() => {
     const prefix = `${ref.year}-${pad(ref.month + 1)}-`;
-    const map = new Map<number, typeof leave>();
+    const map = new Map<number, LeaveRequest[]>();
     for (const request of leave) {
       if (!request.date.startsWith(prefix)) continue;
       const day = Number(request.date.slice(-2));
@@ -84,6 +93,11 @@ function LeaveCalendar() {
     });
   }
 
+  const openCreate = (date: string) =>
+    setDialog({ open: true, mode: "create", date, leave: undefined });
+  const openEdit = (request: LeaveRequest) =>
+    setDialog({ open: true, mode: "edit", date: request.date, leave: request });
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -92,10 +106,11 @@ function LeaveCalendar() {
             Time off
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Team leave on a month grid. Click a day to request time off.
+            Team leave on a month grid. Click a day to request time off, or a
+            chip to edit it.
           </p>
         </div>
-        <Button onClick={() => setDialog({ open: true, date: "" })}>
+        <Button onClick={() => openCreate("")}>
           <PlusIcon size={16} />
           New leave
         </Button>
@@ -144,36 +159,44 @@ function LeaveCalendar() {
               ? `${ref.year}-${pad(ref.month + 1)}-${pad(day)}`
               : "";
             return (
-              <button
-                type="button"
+              <div
                 key={i}
-                disabled={day === null}
-                onClick={() => setDialog({ open: true, date: isoDate })}
                 className={cn(
-                  "min-h-24 border-r border-b border-border p-1.5 text-left align-top transition-colors",
+                  "min-h-24 border-r border-b border-border p-1.5",
                   (i + 1) % 7 === 0 && "border-r-0",
-                  day === null ? "bg-muted/30" : "hover:bg-muted/40",
+                  day === null && "bg-muted/30",
                 )}
               >
                 {day !== null ? (
                   <div className="flex h-full flex-col gap-1">
-                    <span className="text-xs font-medium text-muted-foreground">
+                    <button
+                      type="button"
+                      onClick={() => openCreate(isoDate)}
+                      className="self-start rounded-none px-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+                      aria-label={`Add leave on ${isoDate}`}
+                    >
                       {day}
-                    </span>
+                    </button>
                     <div className="flex flex-col gap-1">
                       {events.map((event) => (
-                        <Badge
+                        <button
                           key={event.id}
-                          variant={TYPE_VARIANT[event.type]}
-                          className="w-full justify-start truncate"
+                          type="button"
+                          onClick={() => openEdit(event)}
+                          className="text-left"
                         >
-                          {event.employee}
-                        </Badge>
+                          <Badge
+                            variant={TYPE_VARIANT[event.type]}
+                            className="w-full justify-start truncate"
+                          >
+                            {event.employee}
+                          </Badge>
+                        </button>
                       ))}
                     </div>
                   </div>
                 ) : null}
-              </button>
+              </div>
             );
           })}
         </div>
@@ -181,6 +204,8 @@ function LeaveCalendar() {
 
       <LeaveFormDialog
         open={dialog.open}
+        mode={dialog.mode}
+        leave={dialog.leave}
         defaultDate={dialog.date}
         onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}
       />

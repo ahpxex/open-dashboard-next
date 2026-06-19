@@ -9,7 +9,7 @@ const MODELS = [
 ];
 const LOCATIONS = ["us-east", "us-west", "eu-central", "ap-south", "sa-east"];
 
-const DEVICE_COUNT = 1500;
+const DEVICE_COUNT = 10000;
 
 function statusFor(i: number): DeviceStatus {
   if (i % 19 === 0) return "offline";

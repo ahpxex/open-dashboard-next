@@ -1,6 +1,9 @@
+import { PlusIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -9,13 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { employeesListQuery } from "@/features/employees/queries";
+import { EmployeeFormDialog } from "@/features/employees/EmployeeFormDialog";
+import {
+  employeesListQuery,
+  useDeleteEmployee,
+} from "@/features/employees/queries";
 import {
   allEmployeesParams,
+  type Employee,
   type EmployeeStatus,
   employeeDepartments,
 } from "@/features/employees/schema";
-import { type ChipColor, StatusChip } from "@/infra/ui";
+import { ActionMenu, type ChipColor, StatusChip } from "@/infra/ui";
 
 export const Route = createFileRoute("/_app/hr/directory")({
   loader: ({ context }) =>
@@ -38,12 +46,17 @@ const statusLabelMap: Record<EmployeeStatus, string> = {
 const titleCase = (value: string) =>
   value.charAt(0).toUpperCase() + value.slice(1);
 
+type DialogState = { mode: "create" | "edit"; employee?: Employee } | null;
+
 function Directory() {
   const query = useQuery(employeesListQuery(allEmployeesParams));
   const employees = query.data?.rows ?? [];
+  const remove = useDeleteEmployee();
+  const confirm = useConfirm();
 
   const [searchValue, setSearchValue] = useState("");
   const [department, setDepartment] = useState("");
+  const [dialog, setDialog] = useState<DialogState>(null);
 
   const filtered = useMemo(() => {
     const term = searchValue.trim().toLowerCase();
@@ -63,13 +76,19 @@ function Directory() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          Directory
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Everyone on the team, as a dense list.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">
+            Directory
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Everyone on the team, as a dense list.
+          </p>
+        </div>
+        <Button onClick={() => setDialog({ mode: "create" })}>
+          <PlusIcon size={16} />
+          Add person
+        </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -128,10 +147,31 @@ function Directory() {
                 colorMap={statusColorMap}
                 labelMap={statusLabelMap}
               />
+              <ActionMenu
+                onEdit={() => setDialog({ mode: "edit", employee })}
+                onDelete={async () => {
+                  const ok = await confirm({
+                    title: `Remove “${employee.name}”?`,
+                    description: "This action cannot be undone.",
+                    confirmLabel: "Remove",
+                    destructive: true,
+                  });
+                  if (ok) remove.mutate(employee.id);
+                }}
+              />
             </li>
           ))
         )}
       </ul>
+
+      <EmployeeFormDialog
+        open={dialog !== null}
+        mode={dialog?.mode ?? "create"}
+        employee={dialog?.employee}
+        onOpenChange={(open) => {
+          if (!open) setDialog(null);
+        }}
+      />
     </div>
   );
 }

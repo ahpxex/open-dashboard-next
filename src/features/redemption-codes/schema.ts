@@ -17,7 +17,7 @@ export type RedemptionCode = {
 /** Coercing schema parsed on the wire (numbers may arrive as strings). */
 export const redemptionCodeInputSchema = z.object({
   code: z.string().min(3, "Code must be at least 3 characters"),
-  discountPercent: z.coerce.number().int().min(1, "1–100").max(100, "1–100"),
+  discountPercent: z.coerce.number().int().min(0, "0–100").max(100, "0–100"),
   maxUses: z.coerce.number().int().min(1, "Must be ≥ 1"),
   status: z.enum(redemptionCodeStatuses),
 });
@@ -29,8 +29,8 @@ export const redemptionCodeFormSchema = z.object({
   discountPercent: z
     .number({ message: "Required" })
     .int()
-    .min(1, "1–100")
-    .max(100, "1–100"),
+    .min(0, "0–100")
+    .max(100, "0–100"),
   maxUses: z.number({ message: "Required" }).int().min(1, "Must be ≥ 1"),
   status: z.enum(redemptionCodeStatuses),
 });
@@ -42,7 +42,7 @@ export type NewRedemptionCode = RedemptionCodeInput & { usedCount: number };
 export const redemptionCodeUpdateSchema = z.object({
   id: z.string().min(1),
   code: z.string().min(3).optional(),
-  discountPercent: z.coerce.number().int().min(1).max(100).optional(),
+  discountPercent: z.coerce.number().int().min(0).max(100).optional(),
   maxUses: z.coerce.number().int().min(0).optional(),
   status: z.enum(redemptionCodeStatuses).optional(),
 });

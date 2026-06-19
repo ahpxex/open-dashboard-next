@@ -37,7 +37,7 @@ export type UserUpdate = z.infer<typeof userUpdateSchema>;
 
 export const userListParamsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(10),
+  pageSize: z.coerce.number().int().min(1).max(500).default(10),
   search: z.string().optional().default(""),
   sortBy: z.string().optional(),
   sortDir: z.enum(["asc", "desc"]).optional(),
