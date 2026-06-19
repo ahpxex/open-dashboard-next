@@ -62,6 +62,25 @@ Navigation is configured in `src/lib/sidebar-items.ts` (`mainMenuItems`, `bottom
 - **List views** (`src/infra/table`, `src/infra/list`): `DataTable` (server-driven, URL-synced via `useTableSearch`, debounced search, opt-in bulk select) and `CardList` + `useResourceList` (the gallery counterpart, same plumbing).
 - **Page archetypes**: CRUD table (`products`), Detail/Show (`products_.$id.tsx` + `DescriptionList`), Master-detail split (`orders.tsx` + `orders.$id.tsx`), Card/grid list (`posts`). Each has a skill in `.claude/skills/`. Catalogue: `PATTERNS.md`.
 
+### Gallery (UI-shape palette)
+
+`src/routes/_app/gallery/*` is a **gallery of admin UI shapes** — a broad palette
+of forms, lists, pages, and rich views (kanban, tree, calendar, timeline, …) that
+an agent picks from when composing a real app. Each variant is a **self-contained
+route** (some pair with small components under `src/components/data`,
+`src/components/feedback`, or `src/components/form/ComboboxField.tsx`), runs
+**zero-config** on local/in-memory data, and follows the same conventions as the
+rest of the app (page-shell heading, form system, `toast`, theme tokens, and —
+where it shows data plumbing — `ListParams`/URL state). Gallery demos are
+**illustrative**: most use local/static data and do **not** add Drizzle tables —
+they teach the *shape*, not a persisted resource.
+
+The sidebar surfaces them in labelled groups (`Gallery · Forms`, `Gallery · Lists`,
+…) inserted at the `// gallery:anchor` line in `src/lib/sidebar-items.ts`. The full
+menu is `docs/gallery-catalogue.md`. On port, keep the shapes the product needs and
+run the **`trim-gallery`** skill to delete the rest (route + any local component +
+sidebar entry + catalogue row — each variant is independently removable).
+
 ### Agent layer
 
 `.claude/skills/*` (one per archetype/operation: `add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-form`, `add-chart-page`, `add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`), `.claude/commands/*` (`/add-resource`, `/port`), `PATTERNS.md` (the catalogue), and `PORTING.md` (how to start a real product). Find the closest pattern, copy its canonical example, follow its invariants.

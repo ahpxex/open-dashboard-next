@@ -15,11 +15,27 @@ import {
 import { appConfig } from "@/config/app";
 import type { MenuItem } from "@/lib/sidebar-items";
 
-// A nav item is active for its own route and any route nested beneath it, so
-// e.g. `/products/123` keeps "Products" highlighted. `/` only matches exactly.
-function isActivePath(pathname: string, href: string): boolean {
+// Whether `href` matches the current path (exact, or a parent of a nested route).
+// `/` only matches exactly so the home item doesn't shadow every route.
+function hrefMatches(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+// The single active nav item: the LONGEST matching href wins. So on
+// `/gallery/kanban` the "Kanban" item is active rather than the `/gallery`
+// overview, while `/products/123` still keeps "Products" highlighted.
+function activeHrefFor(pathname: string, hrefs: string[]): string | null {
+  let best: string | null = null;
+  for (const href of hrefs) {
+    if (
+      hrefMatches(pathname, href) &&
+      (best === null || href.length > best.length)
+    ) {
+      best = href;
+    }
+  }
+  return best;
 }
 
 // Active state: monochrome but clearly heavier than the bare accent — the
@@ -32,10 +48,14 @@ const ACTIVE_CLASSES =
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const activeHref = activeHrefFor(pathname, [
+    ...appConfig.nav.main.flatMap((group) => group.items.map((i) => i.href)),
+    ...appConfig.nav.bottom.map((i) => i.href),
+  ]);
 
   const renderMenuItem = (item: MenuItem) => {
     const Icon = item.icon;
-    const isActive = isActivePath(pathname, item.href);
+    const isActive = item.href === activeHref;
 
     return (
       <SidebarMenuItem key={item.label}>
