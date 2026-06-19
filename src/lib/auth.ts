@@ -46,7 +46,10 @@ const secret =
     : "dev-only-insecure-secret-change-me");
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+  // Leave baseURL unset in zero-config dev: better-auth then derives the origin
+  // from the request, so login works on whatever port `bun dev` lands on. Set
+  // BETTER_AUTH_URL in production (and the secret fails closed there).
+  baseURL: process.env.BETTER_AUTH_URL,
   secret,
   database,
   emailAndPassword: {
