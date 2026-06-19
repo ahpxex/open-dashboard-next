@@ -22,7 +22,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "bun run scripts/seed.ts",
     "create-resource": "bun run scripts/create-resource.ts",
-    "strip-demo": "bun run scripts/strip-demo.ts"
+    "strip-demo": "bun run scripts/strip-demo.ts",
+    "sync-skills": "bun run scripts/sync-skills.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

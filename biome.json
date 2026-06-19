@@ -13,7 +13,8 @@
       "!dist",
       "!build",
       "!drizzle",
-      "!src/routeTree.gen.ts"
+      "!src/routeTree.gen.ts",
+      "!.claude"
     ]
   },
   "formatter": {
