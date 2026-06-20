@@ -10,6 +10,7 @@ import {
   ClockCounterClockwiseIcon,
   ClockIcon,
   ColumnsIcon,
+  CreditCardIcon,
   CursorClickIcon,
   DownloadSimpleIcon,
   FileTextIcon,
@@ -29,6 +30,7 @@ import {
   StackIcon,
   StepsIcon,
   TableIcon,
+  TranslateIcon,
   TrayIcon,
   TreeStructureIcon,
   UploadSimpleIcon,
@@ -211,6 +213,13 @@ const SHAPES: Shape[] = [
     href: "/gallery/realtime",
     icon: PulseIcon,
   },
+  {
+    category: "lists",
+    title: "Global search",
+    description: "⌘K search across resources with grouped, live results.",
+    href: "/gallery/global-search",
+    icon: MagnifyingGlassIcon,
+  },
   // Rich views
   {
     category: "rich",
@@ -303,6 +312,20 @@ const SHAPES: Shape[] = [
     description: "Social OAuth buttons and a passwordless magic-link form.",
     href: "/gallery/auth-methods",
     icon: FingerprintIcon,
+  },
+  {
+    category: "pages",
+    title: "Billing & plans",
+    description: "Plan picker, usage meters, payment method, and invoices.",
+    href: "/gallery/billing",
+    icon: CreditCardIcon,
+  },
+  {
+    category: "pages",
+    title: "Internationalization",
+    description: "Locale switcher that live-translates labels via a tiny seam.",
+    href: "/gallery/localization",
+    icon: TranslateIcon,
   },
   // Display & feedback
   {

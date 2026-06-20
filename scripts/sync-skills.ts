@@ -97,6 +97,18 @@ const MANIFEST: Record<string, string[]> = {
     "src/routes/_app/gallery/auth-methods.tsx",
     "src/components/auth/SocialButtons.tsx",
   ],
+  "add-global-search": [
+    "src/routes/_app/gallery/global-search.tsx",
+    "src/components/GlobalSearch.tsx",
+  ],
+  "add-i18n": ["src/routes/_app/gallery/localization.tsx", "src/lib/i18n.tsx"],
+  "add-billing": [
+    "src/routes/_app/gallery/billing.tsx",
+    "src/components/billing/PlanCard.tsx",
+    "src/components/billing/UsageMeter.tsx",
+  ],
+  // Testing scaffold (no gallery route — a resource test exemplar)
+  "add-tests": ["src/features/__examples__/resource.test.ts"],
   // Form variants (the dialog lives in the CRUD vertical; these are the page forms)
   "add-form": [
     "src/routes/_app/gallery/form-page.tsx",
