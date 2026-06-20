@@ -1,11 +1,13 @@
 import type { Icon } from "@phosphor-icons/react";
 import {
   BellIcon,
+  BellRingingIcon,
   BookmarkSimpleIcon,
   CalendarBlankIcon,
   CardsIcon,
   CaretRightIcon,
   ChartBarIcon,
+  ClockCounterClockwiseIcon,
   ClockIcon,
   ColumnsIcon,
   CursorClickIcon,
@@ -20,6 +22,7 @@ import {
   MagnifyingGlassIcon,
   NotePencilIcon,
   PencilSimpleIcon,
+  PulseIcon,
   RowsIcon,
   ShieldCheckIcon,
   SlidersHorizontalIcon,
@@ -201,6 +204,13 @@ const SHAPES: Shape[] = [
     href: "/gallery/saved-views",
     icon: BookmarkSimpleIcon,
   },
+  {
+    category: "lists",
+    title: "Live / realtime",
+    description: "Lists and metrics that auto-refresh on an interval.",
+    href: "/gallery/realtime",
+    icon: PulseIcon,
+  },
   // Rich views
   {
     category: "rich",
@@ -308,6 +318,20 @@ const SHAPES: Shape[] = [
     description: "Drawer / sheet, loading-empty-error kit, inline banners.",
     href: "/gallery/feedback",
     icon: BellIcon,
+  },
+  {
+    category: "feedback",
+    title: "Notification center",
+    description: "Header bell with an unread badge and a popover feed.",
+    href: "/gallery/notifications",
+    icon: BellRingingIcon,
+  },
+  {
+    category: "feedback",
+    title: "Audit log",
+    description: "Activity trail of who changed what, with field diffs.",
+    href: "/gallery/audit-log",
+    icon: ClockCounterClockwiseIcon,
   },
 ];
 

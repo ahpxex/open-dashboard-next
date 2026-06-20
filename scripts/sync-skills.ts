@@ -44,6 +44,18 @@ const MANIFEST: Record<string, string[]> = {
   "add-tree-view": ["src/routes/_app/gallery/tree.tsx"],
   "add-calendar": ["src/routes/_app/gallery/calendar.tsx"],
   "add-timeline": ["src/routes/_app/gallery/timeline.tsx"],
+  "add-notifications": [
+    "src/routes/_app/gallery/notifications.tsx",
+    "src/components/NotificationCenter.tsx",
+  ],
+  "add-realtime": [
+    "src/routes/_app/gallery/realtime.tsx",
+    "src/lib/use-live-query.ts",
+  ],
+  "add-audit-log": [
+    "src/routes/_app/gallery/audit-log.tsx",
+    "src/components/data/AuditTrail.tsx",
+  ],
   "add-wizard-form": ["src/routes/_app/gallery/form-wizard.tsx"],
   "add-field-combobox": [
     "src/routes/_app/gallery/form-combobox.tsx",
