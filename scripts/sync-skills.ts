@@ -28,6 +28,18 @@ const MANIFEST: Record<string, string[]> = {
   "add-virtual-table": ["src/routes/_app/gallery/table-virtual.tsx"],
   "add-inline-edit": ["src/routes/_app/gallery/table-inline-edit.tsx"],
   "add-filter-panel": ["src/routes/_app/gallery/filter-panel.tsx"],
+  "add-export-import": [
+    "src/routes/_app/gallery/export-import.tsx",
+    "src/infra/data/csv.ts",
+  ],
+  "add-table-columns": [
+    "src/routes/_app/gallery/table-columns.tsx",
+    "src/infra/table/ColumnControls.tsx",
+  ],
+  "add-saved-views": [
+    "src/routes/_app/gallery/saved-views.tsx",
+    "src/infra/table/SavedViews.tsx",
+  ],
   "add-kanban": ["src/routes/_app/gallery/kanban.tsx"],
   "add-tree-view": ["src/routes/_app/gallery/tree.tsx"],
   "add-calendar": ["src/routes/_app/gallery/calendar.tsx"],

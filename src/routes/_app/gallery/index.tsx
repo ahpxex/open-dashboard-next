@@ -1,6 +1,7 @@
 import type { Icon } from "@phosphor-icons/react";
 import {
   BellIcon,
+  BookmarkSimpleIcon,
   CalendarBlankIcon,
   CardsIcon,
   CaretRightIcon,
@@ -8,6 +9,7 @@ import {
   ClockIcon,
   ColumnsIcon,
   CursorClickIcon,
+  DownloadSimpleIcon,
   FileTextIcon,
   FunnelIcon,
   HourglassIcon,
@@ -164,6 +166,28 @@ const SHAPES: Shape[] = [
     description: "Advanced multi-control panel that drives ListParams.",
     href: "/gallery/filter-panel",
     icon: FunnelIcon,
+  },
+  {
+    category: "lists",
+    title: "CSV export & import",
+    description:
+      "Download rows as CSV and import a file with a parsed preview.",
+    href: "/gallery/export-import",
+    icon: DownloadSimpleIcon,
+  },
+  {
+    category: "lists",
+    title: "Column controls",
+    description: "Toggle column visibility and row density from a popover.",
+    href: "/gallery/table-columns",
+    icon: SlidersHorizontalIcon,
+  },
+  {
+    category: "lists",
+    title: "Saved views",
+    description: "Save filter/sort presets by name and re-apply them.",
+    href: "/gallery/saved-views",
+    icon: BookmarkSimpleIcon,
   },
   // Rich views
   {
