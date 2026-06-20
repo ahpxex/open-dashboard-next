@@ -83,7 +83,7 @@ function DealsPipeline() {
         </Button>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="-mx-0.5 flex gap-4 overflow-x-auto px-0.5 pb-2">
         {dealStages.map((stage) => {
           const cards = grouped[stage];
           const total = cards.reduce((sum, deal) => sum + deal.value, 0);

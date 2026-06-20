@@ -107,7 +107,7 @@ function ListLiteDemo() {
         </p>
       </div>
 
-      <div className="max-w-2xl">
+      <div>
         <div className="relative">
           <MagnifyingGlassIcon
             size={14}

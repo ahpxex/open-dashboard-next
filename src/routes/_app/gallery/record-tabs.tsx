@@ -165,7 +165,10 @@ function RecordTabsDemo() {
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-4">
-                <Label htmlFor="email-digest" className="flex flex-col gap-1">
+                <Label
+                  htmlFor="email-digest"
+                  className="flex flex-col items-start gap-1"
+                >
                   <span className="text-sm font-medium">
                     Weekly email digest
                   </span>
@@ -180,7 +183,10 @@ function RecordTabsDemo() {
                 />
               </div>
               <div className="flex items-center justify-between gap-4">
-                <Label htmlFor="auto-renew" className="flex flex-col gap-1">
+                <Label
+                  htmlFor="auto-renew"
+                  className="flex flex-col items-start gap-1"
+                >
                   <span className="text-sm font-medium">Auto-renew</span>
                   <span className="text-xs text-muted-foreground">
                     Automatically renew the subscription at the end of the term.

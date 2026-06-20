@@ -98,7 +98,7 @@ export function CardList<T>({
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="-mx-0.5 min-h-0 flex-1 overflow-auto px-0.5">
         {isLoading && data.length === 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: skeletonCount }, (_, i) => (

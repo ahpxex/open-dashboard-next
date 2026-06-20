@@ -112,7 +112,10 @@ function ControlPageDemo() {
             />
             <Separator />
             <div className="flex items-center justify-between gap-4">
-              <Label htmlFor="digest" className="flex flex-col gap-1">
+              <Label
+                htmlFor="digest"
+                className="flex flex-col items-start gap-1"
+              >
                 <span className="text-sm font-medium">Activity digest</span>
                 <span className="text-xs text-muted-foreground">
                   How often to bundle non-urgent updates.
@@ -189,7 +192,10 @@ function ControlPageDemo() {
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
-              <Label htmlFor="theme" className="flex flex-col gap-1">
+              <Label
+                htmlFor="theme"
+                className="flex flex-col items-start gap-1"
+              >
                 <span className="text-sm font-medium">Theme</span>
                 <span className="text-xs text-muted-foreground">
                   Match the system or pick a fixed mode.
@@ -213,7 +219,10 @@ function ControlPageDemo() {
             </div>
             <Separator />
             <div className="flex items-center justify-between gap-4">
-              <Label htmlFor="density" className="flex flex-col gap-1">
+              <Label
+                htmlFor="density"
+                className="flex flex-col items-start gap-1"
+              >
                 <span className="text-sm font-medium">Interface density</span>
                 <span className="text-xs text-muted-foreground">
                   Compact fits more rows on screen.
@@ -272,7 +281,7 @@ function ToggleRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <Label htmlFor={id} className="flex flex-col gap-1">
+      <Label htmlFor={id} className="flex flex-col items-start gap-1">
         <span className="text-sm font-medium">{title}</span>
         <span className="text-xs text-muted-foreground">{description}</span>
       </Label>

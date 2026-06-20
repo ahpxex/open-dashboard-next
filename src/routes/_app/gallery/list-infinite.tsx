@@ -100,7 +100,7 @@ function ListInfiniteDemo() {
         </p>
       </div>
 
-      <div className="max-w-2xl">
+      <div>
         <div className="mb-2 flex items-center justify-between text-muted-foreground text-xs">
           <span className="tabular-nums">
             Showing {visible.length} of {TOTAL}

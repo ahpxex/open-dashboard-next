@@ -92,7 +92,7 @@ function KanbanDemo() {
         </p>
       </div>
 
-      <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto pb-2">
+      <div className="-mx-0.5 flex min-h-0 flex-1 gap-4 overflow-x-auto px-0.5 pb-2">
         {COLUMNS.map((column) => {
           const cards = board[column.id];
           const isOver = overColumn === column.id;
