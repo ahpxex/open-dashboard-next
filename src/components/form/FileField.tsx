@@ -122,9 +122,9 @@ export function FileUpload({
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           className={cn(
-            "flex flex-col items-center justify-center gap-2 border border-dashed border-border bg-muted/30 px-4 py-6 text-center transition-colors outline-none hover:border-primary hover:bg-accent focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+            "flex flex-col items-center justify-center gap-2 border border-dashed border-border bg-muted/30 px-4 py-6 text-center transition-colors outline-none hover:border-primary hover:bg-muted focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
             avatar && "size-28 shrink-0 self-start p-2",
-            dragging && "border-primary bg-accent",
+            dragging && "border-primary bg-primary/5",
           )}
         >
           {busy ? (

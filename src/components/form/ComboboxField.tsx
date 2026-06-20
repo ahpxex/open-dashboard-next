@@ -116,7 +116,7 @@ export function ComboboxField({
                         }}
                         className={cn(
                           "flex w-full items-center justify-between gap-2 rounded-none px-2 py-1.5 text-left text-xs outline-none hover:bg-accent hover:text-accent-foreground",
-                          isActive && "bg-accent/60",
+                          isActive && "bg-accent text-accent-foreground",
                         )}
                       >
                         <span className="truncate">{option.label}</span>

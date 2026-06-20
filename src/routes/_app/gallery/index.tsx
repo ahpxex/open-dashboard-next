@@ -363,7 +363,7 @@ function ShapeCard({ shape }: { shape: Shape }) {
   return (
     <Link
       to={shape.href}
-      className="group flex items-start gap-3 border border-border bg-card p-4 transition-colors hover:border-primary hover:bg-accent"
+      className="group flex items-start gap-3 border border-border bg-card p-4 transition-colors hover:border-primary hover:bg-muted/50"
     >
       <span className="grid size-9 shrink-0 place-items-center bg-muted text-muted-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
         <Icon size={18} />
