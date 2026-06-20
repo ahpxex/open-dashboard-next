@@ -46,6 +46,10 @@ The CRUD table is the base archetype. `products` is the canonical reference;
   through `useConfirm()`.
 - The Drizzle adapter is imported from `@/infra/data/drizzle-repository`
   (server-only), never from a client component.
+- The page wraps `DataTable` in a **full-height flex column** —
+  `<div className="flex h-full flex-col gap-6">` with the header as `shrink-0` —
+  so the pagination bar pins to the bottom instead of trailing the rows (the app
+  shell sizes each page to the viewport). The generator emits this; keep it.
 
 ## Related
 

@@ -66,8 +66,8 @@ function CustomersPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="flex h-full flex-col gap-6">
+      <div className="shrink-0">
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           Customers
         </h1>

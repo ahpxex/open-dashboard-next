@@ -71,6 +71,13 @@ export interface DataTableProps<T> {
  * Generic, fully-controlled data table for server-driven resources.
  * Pagination, sorting, search and filtering state live in the parent
  * (usually backed by TanStack Query). Reused by every `features/<name>` page.
+ *
+ * Layout contract: the table body flexes to fill and scrolls internally, so the
+ * pagination bar always pins to the bottom of the available space. For that to
+ * hold, the page must wrap this in a **full-height flex column** —
+ * `<div className="flex h-full flex-col …">` — which the app shell sizes to the
+ * viewport. (See `routes/_app/products.tsx`; the `create-resource` generator
+ * emits this wrapper.) Without `h-full` the pagination would follow the rows.
  */
 export function DataTable<T>({
   columns,

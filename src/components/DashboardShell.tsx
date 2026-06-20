@@ -11,7 +11,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <SidebarInset className="overflow-hidden">
           <Header />
-          <div className="flex flex-1 flex-col overflow-auto p-4 md:p-6">
+          {/* Content region: a definite-height, scrollable flex column. The
+              `min-h-0` lets it shrink inside the viewport-tall shell so a
+              full-height page (`flex h-full flex-col`) can pin its footer —
+              e.g. a DataTable's pagination bar — to the bottom. */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-auto p-4 md:p-6">
             {children}
           </div>
         </SidebarInset>
