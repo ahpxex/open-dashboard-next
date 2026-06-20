@@ -41,14 +41,15 @@ import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 /**
- * Gallery Overview — the single entry point for the UI-shape palette.
+ * Skills Gallery Overview — the catalogue of admin UI shapes.
  *
  * Every shape below is a self-contained, zero-config demo route under
- * `src/routes/_app/gallery/*`. They are kept out of the sidebar (only this
- * Overview is listed) and surfaced here, grouped into URL-synced tabs. Each
- * card links to the full demo. The business-scenario dashboards in the sidebar
- * show these shapes *composed* into real products; this page is the catalogue
- * you pick from. On port, keep what you need and run `trim-gallery`.
+ * `src/routes/_app/gallery/*`. Each skill also has its own sidebar entry (under
+ * the `Skills · …` groups); this Overview lists every shape — including the
+ * variants not pinned to the sidebar — grouped into URL-synced tabs. The
+ * business cases in the sidebar show these shapes *composed* into real products;
+ * this page is the catalogue you pick from. On port, keep what you need and run
+ * `trim-gallery`.
  */
 
 type CategoryKey = "forms" | "lists" | "rich" | "pages" | "feedback";
@@ -392,15 +393,15 @@ function GalleryOverview() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          Gallery
+          Skills Gallery
         </h1>
         <p className="mt-1 max-w-prose text-sm text-muted-foreground">
-          A palette of admin UI shapes — forms, lists, pages, and rich views.
-          Each card opens a self-contained, zero-config demo. The dashboards in
-          the sidebar show these shapes <em>composed</em> into real business
-          backends; this page is the catalogue you pick from. On port, keep what
-          your product needs and run <code>trim-gallery</code> to delete the
-          rest.
+          A palette of admin UI shapes — forms, lists, pages, and rich views,
+          one per skill. Each card opens a self-contained, zero-config demo. The
+          business cases in the sidebar (E-commerce, CRM) show these shapes{" "}
+          <em>composed</em> into real products; this page is the catalogue you
+          pick from. On port, keep what your product needs and run{" "}
+          <code>trim-gallery</code> to delete the rest.
         </p>
       </div>
 
