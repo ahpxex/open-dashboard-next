@@ -1,0 +1,36 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "open-dashboard",
+  "owner": {
+    "name": "ahpx"
+  },
+  "description": "Open Dashboard — 40+ copy-ready admin UI shape skills (CRUD, detail, master-detail, kanban, calendar, wizard, billing, RBAC, i18n, …) plus rebrand / scaffold / port operations. The shape skills compose on top of the scaffold-dashboard foundation (a TanStack Start back-office substrate).",
+  "version": "0.2.0",
+  "plugins": [
+    {
+      "name": "open-dashboard",
+      "displayName": "Open Dashboard",
+      "source": "./",
+      "strict": false,
+      "description": "The full Open Dashboard skill catalogue — every UI-shape skill (CRUD, detail, master-detail, kanban, calendar, wizard, billing, RBAC, i18n, …) plus the rebrand / scaffold / strip / trim / backend-preset operations. The shape skills assume the scaffold-dashboard base (TanStack Start + the platform layer) — run scaffold-dashboard or fork the repo first, then compose the shapes on top.",
+      "version": "0.2.0",
+      "author": {
+        "name": "ahpx"
+      },
+      "homepage": "https://github.com/ahpxex/open-dashboard-next",
+      "repository": "https://github.com/ahpxex/open-dashboard-next",
+      "license": "MIT",
+      "category": "development",
+      "keywords": [
+        "dashboard",
+        "admin",
+        "back-office",
+        "tanstack-start",
+        "crud",
+        "ui-shapes",
+        "skills"
+      ],
+      "skills": ["./.claude/skills"]
+    }
+  ]
+}

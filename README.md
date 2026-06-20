@@ -6,7 +6,7 @@ Most admin starters are one of two things: a pretty UI kit with no real backend,
 
 It runs **zero-config**: `bun install && bun run dev` boots on in-memory adapters — no Docker, no Postgres. Add a `DATABASE_URL` to switch to real Postgres; the data and auth backends are swappable presets behind two seams.
 
-![preview](https://s2.loli.net/2025/10/10/KyioHSd8blFvTjA.png)
+
 
 ## What makes it different
 
@@ -129,6 +129,43 @@ each step backed by a skill — is:
 The catalogue of shapes is in [`PATTERNS.md`](./PATTERNS.md); the full porting guide
 is in [`PORTING.md`](./PORTING.md); agent guidance and the prescriptive
 ALWAYS/NEVER conventions live in [`CLAUDE.md`](./CLAUDE.md).
+
+## Installing the skills (CLIs & other agents)
+
+Every skill is a standard [Agent Skill](https://github.com/anthropics/skills) — a
+`SKILL.md` with `name` + `description` frontmatter under `.claude/skills/<name>/` —
+so any skills CLI or agent can ingest the catalogue straight from this repo:
+
+```bash
+# Vercel's skills.sh
+npx skills add ahpxex/open-dashboard-next
+# or OpenSkills (Claude Code, Cursor, Codex, Windsurf, Aider — anything reading SKILL.md / AGENTS.md)
+npx openskills install ahpxex/open-dashboard-next
+```
+
+The Agent Skills format is agent-agnostic, so **Cursor, OpenAI Codex, Windsurf,
+Aider** and other agents can load and follow these skills too.
+
+**Claude Code plugin** — the repo ships a
+[`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json), so Claude
+Code users can install the whole **43-skill catalogue** natively:
+
+```
+/plugin marketplace add ahpxex/open-dashboard-next
+/plugin install open-dashboard@open-dashboard
+```
+
+Each skill is then available namespaced under the plugin (e.g.
+`open-dashboard:add-kanban`), so it never collides with other installed skill packs.
+
+> **These are substrate-coupled skills, not standalone drop-ins.** Each *shape*
+> skill ships a `templates/*` file that imports this repo's platform layer
+> (`@/components/ui`, `@/lib/toast`, the form system, theme tokens) and assumes the
+> foundation that **`scaffold-dashboard`** stands up. So the real unit of reuse is
+> the *substrate*: run `scaffold-dashboard` first (it bundles the runnable base), or
+> fork this repo, **then** compose the shape skills on top. Installing one shape
+> skill into an unrelated project gives you the instructions plus a template that
+> won't compile without the base — that's expected, not a bug.
 
 ## Project Structure
 

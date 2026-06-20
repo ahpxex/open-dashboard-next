@@ -31,6 +31,7 @@ execFileSync(
     "--exclude=.output",
     "--exclude=.nitro",
     "--exclude=.claude",
+    "--exclude=.claude-plugin",
     "--exclude=drizzle",
     "--exclude=dist",
     "--exclude=.env",
