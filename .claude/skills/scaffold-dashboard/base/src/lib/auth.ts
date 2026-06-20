@@ -61,8 +61,12 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
   },
-  // tanstackStartCookies must be the LAST plugin so it can flush Set-Cookie.
-  plugins: [tanstackStartCookies()],
+  plugins: [
+    // auth-plugins:anchor — insert better-auth plugins ABOVE this line (e.g.
+    // magicLink(), passkey(), admin()). tanstackStartCookies() must stay LAST so
+    // it can flush Set-Cookie after the others run.
+    tanstackStartCookies(),
+  ],
 });
 
 /**

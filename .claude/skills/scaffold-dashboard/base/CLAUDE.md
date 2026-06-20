@@ -12,7 +12,7 @@ the `add-*` skills** (`add-crud-resource`, `add-detail-page`, `add-master-detail
 It runs **zero-config**: `bun install && bun run dev` boots on in-memory adapters
 (no Docker, no Postgres). Set `DATABASE_URL` to use Postgres; both the data
 (`Repository`) and auth (`AuthProvider`) backends are swappable presets — see the
-`add-backend-preset` skill and `docs/backends.md`.
+`add-backend-preset` skill.
 
 ## Tech stack
 

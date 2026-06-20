@@ -4,13 +4,16 @@
  *   bun run create-resource <name>
  *
  * Scaffolds a full CRUD resource modelled on `features/products`:
- *   - src/features/<name>/{schema,server,queries,columns,config}.ts(x)
+ *   - src/features/<name>/{schema,server,demo-data,queries,columns,config}.ts(x)
  *   - src/routes/_app/<name>.tsx
  *   - a Drizzle table appended to src/db/schema.ts
  *   - a sidebar entry in src/lib/sidebar-items.ts
  *
- * After running: `bun run db:generate && bun run db:migrate`, then customise
- * the fields in schema.ts / the feature folder to fit your domain.
+ * Like `products`, the generated `server.ts` binds `drizzleRepository` when
+ * DATABASE_URL is set and falls back to `memoryRepository` over `demo-data.ts`
+ * otherwise — so a freshly generated resource runs under zero-config `bun dev`
+ * with no database. After running, customise the fields in schema.ts / the
+ * feature folder; with Postgres, `bun run db:generate && bun run db:migrate`.
  */
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -95,9 +98,13 @@ export type __TYPE__ListParams = z.infer<typeof __NAME__ListParamsSchema>;
 
 const serverTs = `import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { __NAME__ } from "@/db/schema";
+import { type New__TYPE__, type __TYPE__, __NAME__ } from "@/db/schema";
 import { drizzleRepository } from "@/infra/data/drizzle-repository";
+import { memoryRepository } from "@/infra/data/memory-repository";
+import type { Repository } from "@/infra/data/repository";
+import { hasDatabase } from "@/lib/backend";
 import { requireUser } from "@/lib/require-user";
+import { demo__TITLE__ } from "./demo-data";
 import {
   type __TYPE__ListParams,
   __NAME__InputSchema,
@@ -105,17 +112,31 @@ import {
   __NAME__UpdateSchema,
 } from "./schema";
 
-export const __NAME__Repository = drizzleRepository(__NAME__, {
-  searchColumns: [__NAME__.name],
-  sortColumns: {
-    name: __NAME__.name,
-    status: __NAME__.status,
-    createdAt: __NAME__.createdAt,
-  },
-  filterColumns: { status: __NAME__.status },
-  defaultSort: { column: __NAME__.createdAt, dir: "desc" },
-  updatedAtKey: "updatedAt",
-});
+/**
+ * Backed by Postgres via the Drizzle adapter when DATABASE_URL is set, and by the
+ * in-memory adapter otherwise (zero-config \`bun dev\`, no Docker). Swapping to a
+ * REST/GraphQL backend means changing only this binding — the server fns, queries,
+ * table, and forms stay the same.
+ */
+export const __NAME__Repository: Repository<__TYPE__, New__TYPE__> = hasDatabase
+  ? drizzleRepository(__NAME__, {
+      searchColumns: [__NAME__.name],
+      sortColumns: {
+        name: __NAME__.name,
+        status: __NAME__.status,
+        createdAt: __NAME__.createdAt,
+      },
+      filterColumns: { status: __NAME__.status },
+      defaultSort: { column: __NAME__.createdAt, dir: "desc" },
+      updatedAtKey: "updatedAt",
+    })
+  : memoryRepository<__TYPE__, New__TYPE__>(demo__TITLE__, {
+      searchFields: ["name"],
+      sortFields: ["name", "status", "createdAt"],
+      filterFields: ["status"],
+      defaultSort: { field: "createdAt", dir: "desc" },
+      updatedAtKey: "updatedAt",
+    });
 
 function toListParams(data: __TYPE__ListParams) {
   return {
@@ -309,6 +330,44 @@ export const __NAME__TableConfig = {
   defaultPageSize: 10,
   emptyMessage: "No __NAME__ found.",
 };
+`;
+
+const demoDataTs = `import type { __TYPE__ } from "@/db/schema";
+
+/**
+ * Seed rows for the zero-config in-memory backend (used when DATABASE_URL is
+ * unset). Only loaded by \`memoryRepository\` in server.ts; ignored once a real
+ * Postgres backend is configured. Replace these with rows that fit your domain,
+ * or remove them once you migrate a database.
+ */
+const at = (iso: string) => new Date(iso);
+
+export const demo__TITLE__: __TYPE__[] = [
+  {
+    id: "00000000-0000-4000-8000-000000000001",
+    name: "First __NAME__",
+    status: "active",
+    description: "Sample __NAME__ row for zero-config dev.",
+    createdAt: at("2026-01-04T09:00:00Z"),
+    updatedAt: at("2026-01-04T09:00:00Z"),
+  },
+  {
+    id: "00000000-0000-4000-8000-000000000002",
+    name: "Second __NAME__",
+    status: "active",
+    description: "Another sample row.",
+    createdAt: at("2026-01-06T12:30:00Z"),
+    updatedAt: at("2026-01-08T08:15:00Z"),
+  },
+  {
+    id: "00000000-0000-4000-8000-000000000003",
+    name: "Archived __NAME__",
+    status: "archived",
+    description: "An archived sample row.",
+    createdAt: at("2026-01-02T08:00:00Z"),
+    updatedAt: at("2026-01-09T13:40:00Z"),
+  },
+];
 `;
 
 const routeTsx = `import { PlusIcon } from "@phosphor-icons/react";
@@ -570,6 +629,7 @@ function __TYPE__Form({
 mkdirSync(featureDir, { recursive: true });
 writeFileSync(join(featureDir, "schema.ts"), render(schemaTs));
 writeFileSync(join(featureDir, "server.ts"), render(serverTs));
+writeFileSync(join(featureDir, "demo-data.ts"), render(demoDataTs));
 writeFileSync(join(featureDir, "queries.ts"), render(queriesTs));
 writeFileSync(join(featureDir, "columns.tsx"), render(columnsTsx));
 writeFileSync(join(featureDir, "config.ts"), render(configTs));
@@ -629,14 +689,35 @@ if (!schemaSrc.includes(`export const ${name} = pgTable`)) {
   writeFileSync(schemaFile, next);
 }
 
-// Insert the sidebar entry above the anchor (reuses PackageIcon — change later).
+// Insert the sidebar entry above the anchor. Pick a distinct icon deterministically
+// from the resource name so stacking several generated resources doesn't render the
+// same icon on every row (scaffold-dashboard: "never repeat one icon" — tweak later
+// to a domain-specific icon if you like).
+const ICON_POOL = [
+  "PackageIcon",
+  "CubeIcon",
+  "TagIcon",
+  "FolderIcon",
+  "StackIcon",
+  "ReceiptIcon",
+  "ListChecksIcon",
+  "ArchiveIcon",
+  "TableIcon",
+  "BasketIcon",
+  "SquaresFourIcon",
+  "UsersIcon",
+] as const;
+const iconName =
+  ICON_POOL[
+    [...name].reduce((h, c) => h + c.charCodeAt(0), 0) % ICON_POOL.length
+  ];
 const ANCHOR = "// create-resource:anchor";
 const sidebarSrc = readFileSync(sidebarFile, "utf8");
 if (sidebarSrc.includes(ANCHOR) && !sidebarSrc.includes(`href: "/${name}"`)) {
-  const item = `      { label: "${TitlePlural}", href: "/${name}", icon: PackageIcon },\n      ${ANCHOR}`;
+  const item = `      { label: "${TitlePlural}", href: "/${name}", icon: ${iconName} },\n      ${ANCHOR}`;
   let next = sidebarSrc.replace(ANCHOR, item.trimStart());
-  // Ensure the icon is imported (a clean base only imports HouseIcon/GearIcon).
-  next = ensureNamedImports(next, "@phosphor-icons/react", ["PackageIcon"]);
+  // Ensure the chosen icon is imported (a clean base only imports HouseIcon/GearIcon).
+  next = ensureNamedImports(next, "@phosphor-icons/react", [iconName]);
   writeFileSync(sidebarFile, next);
 }
 
