@@ -121,7 +121,7 @@ function KanbanDemo() {
                 <Badge variant="outline">{cards.length}</Badge>
               </div>
 
-              <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+              <div className="-mx-0.5 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-0.5">
                 {cards.length === 0 ? (
                   <p className="px-1 py-6 text-center text-xs text-muted-foreground">
                     Drop cards here
