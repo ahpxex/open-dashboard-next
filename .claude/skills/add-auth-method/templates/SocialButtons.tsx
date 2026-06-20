@@ -64,7 +64,7 @@ export function SocialButtons({
           type="button"
           variant="outline"
           className="w-full"
-          disabled={pending !== null}
+          disabled={pending !== null && pending !== id}
           onClick={() => signInWith(id)}
         >
           <Icon weight="fill" />

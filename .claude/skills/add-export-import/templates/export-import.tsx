@@ -239,6 +239,7 @@ function ImportDialog({
           <input
             ref={inputRef}
             type="file"
+            aria-label="CSV file to import"
             accept=".csv,text/csv"
             className="block w-full text-xs text-muted-foreground file:mr-3 file:inline-flex file:h-7 file:items-center file:border file:border-border file:bg-background file:px-2.5 file:text-xs file:font-medium file:text-foreground hover:file:bg-muted"
             onChange={(e) => {

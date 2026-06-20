@@ -21,9 +21,10 @@ Then in the copied file:
    each tab's content; the active tab reads from `Route.useSearch()` and is set
    with `Route.useNavigate({ search: { tab } })`.
 3. Real record: load it in the route `loader` (`getOne(id)`, key
-   `["<resource>","detail",id]`) and render the tabs from the loaded data; each
-   tab can lazy-load its own data. Add a sidebar entry, or reach it from a detail
-   page.
+   `["<resource>","detail",id]`) and render the tabs from the loaded data. base-ui
+   `Tabs` mounts every panel, so each tab can mount a component that fetches its
+   own data — gate that query on the active tab (the URL search param) to defer it
+   until the tab is selected. Add a sidebar entry, or reach it from a detail page.
 
 (Only open the template if you need to customise it — copying it costs no context.)
 

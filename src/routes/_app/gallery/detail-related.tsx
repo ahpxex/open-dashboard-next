@@ -173,6 +173,9 @@ function DetailRelatedDemo() {
             {RELATED_ORDERS.length} orders
           </span>
         </div>
+        {/* Inline for a self-contained demo. The reusable, extractable version
+            of this related-records table is <RelatedList> in
+            src/components/data/RelatedList.tsx (the add-related-records skill). */}
         <div className="border border-border">
           <Table>
             <TableHeader>

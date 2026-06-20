@@ -101,7 +101,7 @@ function TreeDemo() {
       </div>
 
       <div className="max-w-md rounded-none border border-border bg-card p-2">
-        <ul className="flex flex-col">
+        <ul className="flex flex-col" role="tree" aria-label="Project files">
           {TREE.map((node) => (
             <TreeItem
               key={node.id}
@@ -136,7 +136,12 @@ function TreeItem({
   const isOpen = expanded.has(node.id);
 
   return (
-    <li>
+    <li
+      role="treeitem"
+      aria-label={node.name}
+      aria-level={depth + 1}
+      aria-expanded={isFolder ? isOpen : undefined}
+    >
       <button
         type="button"
         onClick={() => (isFolder ? onToggle(node.id) : toast.success(fullPath))}

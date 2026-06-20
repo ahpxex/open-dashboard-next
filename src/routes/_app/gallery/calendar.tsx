@@ -11,6 +11,9 @@ export const Route = createFileRoute("/_app/gallery/calendar")({
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/** Events shown per day cell before collapsing the rest into a "+N more" row. */
+const MAX_VISIBLE_EVENTS = 3;
+
 const MONTH_NAMES = [
   "January",
   "February",
@@ -35,8 +38,11 @@ type CalendarEvent = {
 // Deterministic events keyed to specific day numbers in the reference month.
 const EVENTS: CalendarEvent[] = [
   { day: 4, label: "Kickoff", variant: "default" },
+  // Day 12 intentionally overflows the per-cell cap to demo the "+N more" row.
   { day: 12, label: "Design review", variant: "secondary" },
   { day: 12, label: "1:1", variant: "outline" },
+  { day: 12, label: "Standup", variant: "outline" },
+  { day: 12, label: "Demo", variant: "default" },
   { day: 18, label: "Ship v2", variant: "default" },
   { day: 25, label: "Retro", variant: "outline" },
 ];
@@ -135,7 +141,7 @@ function CalendarDemo() {
                       {day}
                     </span>
                     <div className="flex flex-col gap-1">
-                      {events.map((event) => (
+                      {events.slice(0, MAX_VISIBLE_EVENTS).map((event) => (
                         <Badge
                           key={event.label}
                           variant={event.variant}
@@ -144,6 +150,11 @@ function CalendarDemo() {
                           {event.label}
                         </Badge>
                       ))}
+                      {events.length > MAX_VISIBLE_EVENTS ? (
+                        <span className="px-1 text-[11px] text-muted-foreground">
+                          +{events.length - MAX_VISIBLE_EVENTS} more
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 ) : null}

@@ -1,4 +1,4 @@
-import { SpinnerIcon } from "@phosphor-icons/react";
+import { CheckIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { type UIEvent, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -141,7 +141,7 @@ function ListInfiniteDemo() {
               </Button>
             ) : (
               <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
-                <SpinnerIcon size={14} />
+                <CheckIcon size={14} />
                 End of list — {TOTAL} items loaded
               </span>
             )}

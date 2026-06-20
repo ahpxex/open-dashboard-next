@@ -25,8 +25,10 @@ const { notifications, markRead, markAllRead } = useNotifications(initial);
 />
 ```
 
-Place it in the app header beside the theme/account controls. `useNotifications`
-also returns `push(newNotification)` and `unreadCount` for local prototypes.
+Place it in the app header — `src/components/Header.tsx` (rendered by
+`DashboardShell.tsx`; there is no `AppHeader`/layout dir) — beside the
+theme/account controls. `useNotifications` also returns `push(newNotification)`
+and `unreadCount` for local prototypes.
 
 ## Back it with a real resource
 

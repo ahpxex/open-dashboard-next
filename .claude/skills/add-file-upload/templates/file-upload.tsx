@@ -18,9 +18,9 @@ function StoredUrls({ files }: { files: StoredFile[] }) {
         Stored URLs
       </span>
       <ul className="flex flex-col gap-1">
-        {files.map((file) => (
+        {files.map((file, index) => (
           <li
-            key={file.url}
+            key={`${file.url}-${index}`}
             className="truncate font-mono text-[11px] text-muted-foreground"
             title={file.url}
           >

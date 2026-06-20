@@ -8,7 +8,8 @@ description: Build a validated form (create/edit dialog or full-page) with TanSt
 A validated form built on `@/components/form` (TanStack Form + zod) with bound
 fields, a server-error slot, and a submit disabled while invalid. Five full-page
 variants are **bundled** under `templates/` — copy the one that fits, don't paste
-code from here.
+code from here. (Four are form-system forms; `form-array.tsx` is the exception —
+a local-state array pattern, not on TanStack Form. See the variant note below.)
 
 Pick a variant:
 
@@ -21,6 +22,8 @@ Pick a variant:
   with no scrolling. For quick create flows surfaced as a page.
 - `form-array.tsx` — **field array**: a repeatable list of rows (add/remove,
   edit in place, live computed total). For variable-length inputs like line items.
+  This one is intentionally a **local-state** array pattern (rows in `useState`,
+  validate on submit) — it is *not* built on the form system / TanStack Form.
 - `form-actions.tsx` — **multiple submit actions**: one form, several footer
   buttons (Save / Save as draft / Save & new) that branch the same handler.
 
@@ -62,10 +65,12 @@ page-shell heading, and theme tokens (`text-muted-foreground`, `border-border`,
 
 ## Invariants
 
-- Two schemas: a **non-coercing** `*FormSchema` for `validators.onChange` (its
-  input types must equal the form values) and a **coercing** `*InputSchema` for
-  the server (defends against string inputs). `NumberField` emits `undefined`
-  when empty.
+- When wiring a **real resource**, split the schema in two: a **non-coercing**
+  `*FormSchema` for `validators.onChange` (its input types must equal the form
+  values) and a **coercing** `*InputSchema` for the server (defends against string
+  inputs) — see `features/products/schema.ts`. The page demos here skip this and
+  validate with one inline `schema`; only the resource's `server.ts` boundary
+  needs the coercing variant. `NumberField` emits `undefined` when empty.
 - `SubmitButton` is disabled while invalid or submitting (handled for you).
 - Server errors surface via `<FormError>`; field validation shows under each
   field once touched.

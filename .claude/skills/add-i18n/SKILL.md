@@ -24,8 +24,11 @@ Then:
    `<I18nProvider>`. Read the locale + translate with `useTranslation()`.
 2. **Add strings** to `dictionaries` — every key must exist in both `en` and
    `zh` (the `satisfies Record<Locale, …>` and `TranslationKey` keep them in
-   lockstep at compile time). Missing keys fall back to the default locale, then
-   to the key itself.
+   lockstep at compile time). Missing keys fall back to the module-level
+   `defaultLocale` (`en`) dictionary, then to the key itself. This fallback is
+   always the canonical source locale `en` — it is *not* affected by the
+   `I18nProvider`'s `defaultLocale` prop, which only sets the **initial active**
+   locale.
 3. **Add a locale** by extending the `Locale` union and adding its dictionary +
    a `locales` entry.
 4. **Use `t()`**: `t("greeting.hello", { name })` interpolates `{name}`.

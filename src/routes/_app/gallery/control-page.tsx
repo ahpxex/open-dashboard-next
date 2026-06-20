@@ -1,5 +1,6 @@
 import { BellIcon, EyeIcon, PaletteIcon } from "@phosphor-icons/react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,9 @@ const visibilityOptions: {
 function ControlPageDemo() {
   const [settings, setSettings] = useState<Settings>(DEFAULTS);
   const [saved, setSaved] = useState<Settings>(DEFAULTS);
+  // The Theme control maps to a real platform capability (next-themes), so wire
+  // it for real instead of leaving it decorative.
+  const { setTheme } = useTheme();
 
   const dirty = (Object.keys(settings) as (keyof Settings)[]).some(
     (key) => settings[key] !== saved[key],
@@ -203,9 +207,11 @@ function ControlPageDemo() {
               </Label>
               <Select
                 value={settings.theme}
-                onValueChange={(value) =>
-                  update("theme", value as Settings["theme"])
-                }
+                onValueChange={(value) => {
+                  const theme = value as Settings["theme"];
+                  update("theme", theme);
+                  setTheme(theme);
+                }}
               >
                 <SelectTrigger id="theme" className="w-36">
                   <SelectValue />

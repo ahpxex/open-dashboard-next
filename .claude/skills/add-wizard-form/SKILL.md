@@ -37,7 +37,9 @@ heading, and theme tokens — all provided by the base.
 ## Invariants
 
 - One `useForm` for the whole wizard; steps are a view over its fields.
-- Per-step validation gates Next; the final submit goes through the coercing schema.
+- Per-step validation gates Next. The demo validates and submits through one
+  non-coercing `schema`; when wiring a **real resource**, route the final submit
+  through that resource's coercing `*InputSchema` before the mutation.
 - Report via `toast` (demo) or a `Repository` mutation (real).
 
 ## Verify

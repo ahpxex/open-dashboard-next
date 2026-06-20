@@ -5,8 +5,9 @@ description: Add inline / editable table cells — click a cell to edit it in pl
 
 # Add inline-editable cells
 
-Click a cell to swap its static value for an `Input`/`Select`; commit on blur/Enter,
-revert on Escape; one cell editable at a time. The full page is **bundled** at
+Click a cell to swap its static value for an `Input`/`Select`; the text/`Input`
+cell commits on blur/Enter and reverts on Escape, while the `Select` cells commit
+on choice. One cell editable at a time. The full page is **bundled** at
 `templates/table-inline-edit.tsx` — copy, don't paste.
 
 ## Add one
@@ -32,12 +33,14 @@ cp .claude/skills/add-inline-edit/templates/table-inline-edit.tsx src/routes/_ap
 
 ## Invariants
 
-- One cell edits at a time; Enter/blur commit, Escape reverts.
+- One cell edits at a time. The text/`Input` cell commits on Enter/blur and
+  reverts on Escape; `Select` cells commit on choice.
 - Editable columns are explicit (don't make every cell editable by accident).
 - Real edits persist via a `Repository` mutation; validate the value first, and
   report each commit with a toast.
 
 ## Verify
 
-`bun run typecheck && bun run check`, then `bun run dev` — edit a cell; commit
-(Enter/blur) and revert (Escape) both behave, and only one cell edits at a time.
+`bun run typecheck && bun run check`, then `bun run dev` — edit a text cell;
+commit (Enter/blur) and revert (Escape) both behave; a `Select` cell commits on
+choice; and only one cell edits at a time.

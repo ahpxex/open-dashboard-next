@@ -29,6 +29,11 @@ import type { ProductListParams } from "@/features/products/schema";
  * list, and quick actions. Copy this file's shape to build any metrics screen.
  */
 
+// Aggregation ceiling: the KPIs/charts below are computed from the returned
+// `rows`, so a `pageSize` of 100 caps every metric at the first 100 records —
+// with >100 products/orders the dashboard would silently undercount. Fine for
+// the demo resources; a large, real resource should aggregate server-side via a
+// dedicated stats server fn (SUM/COUNT/GROUP BY) instead of paging rows here.
 const ALL_PRODUCTS: ProductListParams = {
   page: 1,
   pageSize: 100,
@@ -36,6 +41,7 @@ const ALL_PRODUCTS: ProductListParams = {
   status: "",
 };
 
+// See ALL_PRODUCTS: same 100-row aggregation ceiling applies to orders.
 const ALL_ORDERS: OrderListParams = {
   page: 1,
   pageSize: 100,

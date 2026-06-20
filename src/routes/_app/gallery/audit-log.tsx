@@ -26,6 +26,7 @@ const ENTRIES: AuditEntry[] = [
     action: "changed status of",
     target: "Order #1043",
     time: "2m ago",
+    dateTime: "2026-06-20T14:02:00Z",
     tone: "status",
     changes: [{ field: "status", from: "processing", to: "shipped" }],
   },
@@ -35,6 +36,7 @@ const ENTRIES: AuditEntry[] = [
     action: "updated",
     target: "Product “Aero Mug”",
     time: "18m ago",
+    dateTime: "2026-06-20T13:46:00Z",
     tone: "updated",
     changes: [
       { field: "price", from: "$24.00", to: "$19.00" },
@@ -124,12 +126,12 @@ function AuditLogDemo() {
 
         <Select value={action} onValueChange={(v) => setAction(v ?? "all")}>
           <SelectTrigger size="sm" className="w-44">
-            <SelectValue placeholder="Action" />
+            <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
             {ACTIONS.map((a) => (
               <SelectItem key={a} value={a}>
-                {a === "all" ? "All actions" : a}
+                {a === "all" ? "All types" : a}
               </SelectItem>
             ))}
           </SelectContent>

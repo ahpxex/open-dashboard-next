@@ -201,6 +201,8 @@ export function useNotifications(seed: Notification[] = []) {
   const [notifications, setNotifications] = useState<Notification[]>(seed);
 
   const push = useCallback((input: NewNotification) => {
+    // Order is by createdAt (NotificationCenter re-sorts desc); array position
+    // is irrelevant — prepend here is just a convention.
     setNotifications((prev) => [
       {
         createdAt: Date.now(),

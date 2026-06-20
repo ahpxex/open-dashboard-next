@@ -29,6 +29,8 @@ export interface AuditEntry {
   target?: string;
   /** Pre-formatted timestamp label, e.g. "2m ago" or "Jun 12, 14:02". */
   time: string;
+  /** Optional machine-readable ISO timestamp for the `<time dateTime>` attribute. */
+  dateTime?: string;
   /** Optional per-field before/after changes (rendered as a diff list). */
   changes?: AuditFieldChange[];
   /** Dot colour category; defaults to "updated". */
@@ -111,7 +113,7 @@ export function AuditTrail({
               dotClass(entry.tone),
             )}
           >
-            <Avatar size="sm" className="size-6">
+            <Avatar size="sm">
               <AvatarFallback className="text-[10px]">
                 {initials(entry.actor)}
               </AvatarFallback>
@@ -131,15 +133,20 @@ export function AuditTrail({
                 </>
               ) : null}
             </p>
-            <time className="shrink-0 text-xs text-muted-foreground tabular-nums">
+            <time
+              dateTime={entry.dateTime}
+              className="shrink-0 text-xs text-muted-foreground tabular-nums"
+            >
               {entry.time}
             </time>
           </div>
 
           {entry.changes && entry.changes.length > 0 ? (
             <ul className="mt-2 flex flex-col gap-1 border-l border-border/60 pl-3 text-xs">
-              {entry.changes.map((change) => (
-                <FieldDiff key={change.field} change={change} />
+              {entry.changes.map((change, i) => (
+                // Key by index: a field can legitimately change twice in one
+                // entry, so the field name is not a stable key.
+                <FieldDiff key={i} change={change} />
               ))}
             </ul>
           ) : null}

@@ -14,7 +14,7 @@ export function MetadataList({
       {items.map((item) => (
         <div key={item.label} className="contents">
           <dt className="text-muted-foreground">{item.label}</dt>
-          <dd className="text-right font-medium tabular-nums text-foreground">
+          <dd className="font-medium tabular-nums text-foreground">
             {item.value}
           </dd>
         </div>

@@ -63,7 +63,7 @@ export function StateView({
 
   if (state === "error") {
     return (
-      <Alert variant="destructive">
+      <Alert variant="destructive" role="alert" aria-live="assertive">
         <WarningCircleIcon weight="fill" />
         <AlertTitle>{title ?? "Something went wrong"}</AlertTitle>
         {description && <AlertDescription>{description}</AlertDescription>}
