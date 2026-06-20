@@ -82,7 +82,7 @@ const galleryOnlyModules = [
 ];
 for (const mod of galleryOnlyModules) rm(join(base, mod));
 // 2c. dev-only scripts that don't belong in a distributed base.
-for (const s of ["strip-demo.ts", "sync-skills.ts", "build-base.ts"]) {
+for (const s of ["sync-skills.ts", "build-base.ts"]) {
   rm(join(base, "scripts", s));
 }
 // 2d. template-maintenance docs that don't apply to a scaffolded product.
@@ -111,7 +111,7 @@ const pkg = JSON.parse(
   execFileSync("cat", [pkgPath], { encoding: "utf8" }),
 ) as { scripts?: Record<string, string> };
 if (pkg.scripts) {
-  for (const s of ["strip-demo", "sync-skills", "build-base"]) {
+  for (const s of ["sync-skills", "build-base"]) {
     delete pkg.scripts[s];
   }
 }

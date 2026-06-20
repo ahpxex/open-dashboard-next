@@ -3,7 +3,8 @@ import type { Product } from "@/db/schema";
 /**
  * Seed rows for the zero-config in-memory backend (used when `DATABASE_URL` is
  * unset). Only loaded by `memoryRepository` in `server.ts`; ignored once a real
- * Postgres backend is configured. Removed wholesale by `bun run strip-demo`.
+ * Postgres backend is configured. Repo-only — the scaffold base ships without
+ * the demo resources.
  */
 const at = (iso: string) => new Date(iso);
 

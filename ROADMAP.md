@@ -37,8 +37,9 @@ Not yet built (Phase 5 — hardening):
 - **CI** (GitHub Actions: typecheck + lint + build + test with a Postgres service).
 - **Playwright** smoke tests (Vitest units exist; e2e is manual via Chrome MCP).
 
-(The **`strip-demo` command** — `bun run strip-demo` — has since shipped:
-`scripts/strip-demo.ts` removes the demo resources/data and leaves a clean shell.)
+(Porting is now **scaffold-first**: `scaffold-dashboard` stands up a clean,
+demo-free, gallery-free base via `build-base.ts`, so there is nothing to strip —
+you ADD what you need rather than cloning the full repo and pruning it.)
 
 ---
 
@@ -86,8 +87,11 @@ shapes portable to a different backend.
 6. **Every shape has a reference doc.** The shapes are catalogued as components in
    the `add-component` skill (each a `references/<name>.md` doc). If an agent can't
    add a shape by following its doc, the shape isn't done.
-7. **Demo is removable.** `products`/`orders`/the fake dashboard must be deletable
-   by one command, leaving a clean, named shell.
+7. **Scaffold-first, not clone-and-strip.** A real product starts from a clean
+   base: `scaffold-dashboard` ships the platform shell with the demo resources
+   (`products`/`orders`/`posts`), the Skills Gallery, and dev-only scripts already
+   stripped by `build-base.ts`. You ADD the resources and shapes you need rather
+   than cloning the full repo and pruning it.
 
 ---
 
@@ -97,8 +101,9 @@ Each phase ends green (`tsc` + `biome` + `build`) and, from Phase 5 on, with
 passing tests. The chosen priorities from planning are marked **★**.
 
 > **Status:** Phases 1–4 are ✅ complete (built, unit-tested, demoed on real
-> pages, and Chrome-MCP e2e-verified). The `strip-demo` command has since
-> shipped; Phase 5 (RBAC / CI / Playwright) remains.
+> pages, and Chrome-MCP e2e-verified). Porting is now scaffold-first (the clean
+> base ships demo-free / gallery-free via `build-base.ts`); Phase 5 (RBAC / CI /
+> Playwright) remains.
 
 ### Phase 1 — Atoms / foundations ✅
 *Everything else reuses these; build them first.*
@@ -132,17 +137,18 @@ passing tests. The chosen priorities from planning are marked **★**.
 - **Bulk select + bulk actions** on the table (row selection in URL state).
 
 ### Phase 4 — Agent layer (the differentiator) ✅
-- `.claude/skills/`: the operation skills (`add-crud-resource`, `add-data-source`,
-  `rebrand`, `strip-demo`, …) plus the `add-component` umbrella skill — a catalogue
-  of 35+ UI shapes (`add-form`, `add-card-list`, `add-master-detail`,
-  `add-detail-page`, `add-chart-page`, …), each a `references/<name>.md` doc.
-  Each entry: when-to-use, exact files, the canonical example, invariants, verify step.
+- `.claude/skills/`: the current 7 skills — `scaffold-dashboard`, `rebrand`,
+  `add-crud-resource`, `add-data-source`, `add-backend-preset`, `add-tests`, plus
+  the `add-component` umbrella skill — a catalogue of 35+ UI shapes (`add-form`,
+  `add-card-list`, `add-master-detail`, `add-detail-page`, `add-chart-page`,
+  `add-kanban`, …), each a `references/<name>.md` doc. Each entry: when-to-use,
+  exact files, the canonical example, invariants, verify step.
   *(The shapes originally shipped as one skill per shape; they were later consolidated
   into the single `add-component` catalogue.)*
 - `.claude/commands/`: slash wrappers for the high-frequency ones.
 - Keep [`PATTERNS.md`](./PATTERNS.md) as the machine-readable index, in sync with reality.
-- `PORTING.md`: how to start a real product from this base (rebrand → strip demo →
-  pick data source → add resources/shapes).
+- `PORTING.md`: how to start a real product from a clean scaffold (scaffold-dashboard →
+  rebrand → pick a backend → add resources & shapes).
 - Make `CLAUDE.md` **prescriptive** (ALWAYS/NEVER + the invariants above).
 
 ### Phase 5 — Hardening
@@ -150,9 +156,6 @@ passing tests. The chosen priorities from planning are marked **★**.
 - **Tests**: Vitest (units: adapters, list-params) + Playwright smoke (auth → dashboard →
   CRUD → detail). This is the agent's safety net.
 - **CI**: GitHub Actions (typecheck + lint + build + test) + a Postgres service.
-- **`strip-demo`** ✅ shipped: `bun run strip-demo` (`scripts/strip-demo.ts`) removes
-  the demo resources/data and leaves a clean shell (verified green via
-  `typecheck`/`check`/`test`/`build` on the stripped shell).
 
 ---
 
@@ -166,7 +169,7 @@ passing tests. The chosen priorities from planning are marked **★**.
 ---
 
 ## Definition of done (for the whole vision)
-An agent, given only this repo + a target spec, can: rebrand, strip the demo,
-choose a data source, and assemble the target from the catalogue — each step a
-documented skill — then prove it with `bun test`. When that round-trip works on a
+An agent, given only this repo + a target spec, can: scaffold a clean base,
+rebrand, choose a backend, and assemble the target from the catalogue — each step
+a documented skill — then prove it with `bun test`. When that round-trip works on a
 real brief, the substrate is done.

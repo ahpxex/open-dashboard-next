@@ -19,8 +19,8 @@ card-list/chart-page archetypes, plus `add-form`, `add-kanban`, `add-calendar`,
 `add-virtual-table`, `add-table-columns`, `add-saved-views`, `add-global-search`,
 `add-rbac`, `add-billing`, `add-i18n`, `add-notifications`, `add-audit-log`, …) —
 plus a handful of **operation skills** (`scaffold-dashboard`, `add-crud-resource`,
-`add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`, `trim-gallery`,
-`add-tests`). Each shape ships a copy-ready template + a reference doc (the exact
+`add-data-source`, `add-backend-preset`, `rebrand`, `add-tests`). Each shape ships
+a copy-ready template + a reference doc (the exact
 `cp` + rewire steps, foundation, invariants). You build an app by **picking
 shapes**, not by editing a monolith.
 
@@ -119,14 +119,21 @@ production builds).
 
 ## Composing a product
 
-This template is meant to be **ported**, not cloned-and-hand-edited. The workflow —
-each step backed by a skill — is:
+You build a real product by **scaffolding a clean base, then composing** — you
+*add* what you need rather than cloning the whole repo and pruning it. Each step
+is backed by a skill:
 
-1. **Rebrand** — change name / logo / nav / theme in `src/config/app.ts`. Skill: `rebrand`.
-2. **Pick a backend** — keep zero-config memory, set `DATABASE_URL` for Postgres, or swap a preset (Supabase / external API). Skill: `add-backend-preset` · [`docs/backends.md`](./docs/backends.md).
-3. **Add resources** — `bun run create-resource <name>` scaffolds a full CRUD vertical (table + server fns + query hooks + `DataTable` page + create/edit dialog + sidebar entry). Skill: `add-crud-resource`.
-4. **Add shapes** — compose detail pages, master-detail, kanban, charts, wizards, billing, etc. from the gallery skills (`add-detail-page`, `add-master-detail`, `add-kanban`, …).
-5. **Trim the rest** — `strip-demo` removes the demo resources; `trim-gallery` removes the shapes you don't need.
+1. **Scaffold** — stand up the platform shell in a **new** project: install the
+   plugin (see below) and run `scaffold-dashboard`. The base is **demo-free and
+   gallery-free** out of the box, zero-config runnable. Skill: `scaffold-dashboard`.
+2. **Rebrand** — change name / logo / nav / theme in `src/config/app.ts`. Skill: `rebrand`.
+3. **Pick a backend** — keep zero-config memory, set `DATABASE_URL` for Postgres, or swap a preset (Supabase / external API). Skill: `add-backend-preset` · [`docs/backends.md`](./docs/backends.md).
+4. **Add resources** — `bun run create-resource <name>` scaffolds a full CRUD vertical (table + server fns + query hooks + `DataTable` page + create/edit dialog + sidebar entry). Skill: `add-crud-resource`.
+5. **Add shapes** — compose detail pages, master-detail, kanban, charts, wizards, billing, etc. from the `add-component` catalogue.
+
+> Prefer to explore first? You can also `git clone` the full repo — it boots with
+> the demos + Skills Gallery so you can click through every shape live — then build
+> your product in a fresh scaffold once you know which shapes you want.
 
 The catalogue of shapes is in [`PATTERNS.md`](./PATTERNS.md); the full porting guide
 is in [`PORTING.md`](./PORTING.md); agent guidance and the prescriptive
@@ -183,8 +190,7 @@ open-dashboard-next/
 │   ├── seed.ts              # Demo seeder (bun run db:seed)
 │   ├── create-resource.ts   # CRUD generator (bun run create-resource)
 │   ├── sync-skills.ts       # Generate each skill's templates/ from repo source (--check = drift guard)
-│   ├── build-base.ts        # Assemble the scaffold-dashboard base bundle
-│   └── strip-demo.ts        # Remove the demo resources (bun run strip-demo)
+│   └── build-base.ts        # Assemble the scaffold-dashboard base bundle
 ├── src/
 │   ├── components/          # App shell, charts, form system, shadcn/ui (components/ui)
 │   ├── config/app.ts        # The single rebrand surface (name / logo / nav / theme)
@@ -223,7 +229,6 @@ open-dashboard-next/
 | `bun run create-resource <name>` | Scaffold a new CRUD resource. |
 | `bun run sync-skills` / `sync-skills --check` | Regenerate skill `templates/` from repo source / verify they're in sync (template maintenance). |
 | `bun run build-base` | Reassemble the `scaffold-dashboard` base bundle (template maintenance). |
-| `bun run strip-demo` | Remove the demo resources, leaving a clean shell. |
 
 ## Deployment
 

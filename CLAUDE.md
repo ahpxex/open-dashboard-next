@@ -8,8 +8,8 @@ is **not a product**. It is the **source of truth for the skill catalogue**
 **35+ copy-ready admin UI shapes** (CRUD, detail, master-detail, kanban, calendar,
 wizard, billing, RBAC, i18n, …), each a reference doc + a generated template — plus
 a handful of **operation skills** (`scaffold-dashboard`, `add-crud-resource`,
-`add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`, `trim-gallery`,
-`add-tests`). A **Skills Gallery** renders every shape's own demo. The demos, the
+`add-data-source`, `add-backend-preset`, `rebrand`, `add-tests`). A **Skills
+Gallery** renders every shape's own demo. The demos, the
 resources, and the two business cases all exist for one reason: **to back a shape
 and be the live proof it produces working UI.** A shape's distributed `templates/`
 are *generated from* this repo's working source and kept byte-for-byte in sync, so
@@ -23,11 +23,12 @@ the catalogue never ships code the repo hasn't typechecked, built, and tested.
   verified and visible in the gallery — and (b) stay in lockstep with its
   distributed skill via `sync-skills`. **If you are editing files in this repo,
   you are almost certainly in this mode.** → see *Authoring a skill* below.
-- **Porting out.** A *different* agent forks this repo into a real product and
-  *composes* it from the skills (rebrand → pick a backend → add resources → add
-  shapes → strip the rest). That workflow lives in `PORTING.md` and the
-  `rebrand` / `strip-demo` / `trim-gallery` / `add-backend-preset` skills — not
-  here. Don't confuse "build a product" (port-out) with "maintain the substrate"
+- **Porting out.** A *different* agent stands up a real product by scaffolding the
+  clean base into a **new** project and *composing* it (scaffold → rebrand → pick a
+  backend → add resources → add shapes). The base is demo-free + gallery-free, so
+  there's nothing to strip. That workflow lives in `PORTING.md` and the
+  `scaffold-dashboard` / `rebrand` / `add-backend-preset` / `add-crud-resource`
+  skills — not here. Don't confuse "build a product" (port-out) with "maintain the substrate"
   (the work in this repo).
 
 ## The skill model — the most important convention
@@ -78,7 +79,7 @@ catalogue — not a new top-level skill. To add one:
    `bun run typecheck && bun run check && bun run test && bun run build && bun run sync-skills --check`.
 
 **Operation skills** (`scaffold-dashboard`, `add-crud-resource`, `add-data-source`,
-`add-backend-preset`, `rebrand`, `strip-demo`, `trim-gallery`) ship **no
+`add-backend-preset`, `rebrand`) ship **no
 `templates/`**: they point at a canonical in-repo example (e.g. `features/products`,
 `src/lib/auth-provider.ts`) and/or a command (`bun run create-resource`). They stay
 their own slim `SKILL.md` skills (no `COMPONENT_SOURCES` entry). `add-tests` is the
@@ -219,13 +220,14 @@ via `appConfig.nav`. Two halves:
   in-memory fallback); the rest are memory-backed. These double as the live demos for
   the foundational archetypes — the `add-crud-resource` operation skill plus the
   `add-detail-page` / `add-master-detail` / `add-card-list` / `add-chart-page`
-  components of `add-component`. Each is independently removable (`strip-demo`).
+  components of `add-component`. They live only in this repo as proof — the
+  `scaffold-dashboard` base ships without them (`build-base` strips them).
 - **Skills Gallery** — one entry per shape, grouped (`Skills Gallery · Overview`, then
   `Skills · Forms` / `Lists & tables` / `Rich views` / `Detail & pages` / `Display &
   feedback`), each linking to that shape's demo under `/gallery/*` (every shape is a
   component in `add-component`). The Overview (`gallery/index.tsx`) is a tabbed
-  catalogue of every shape (incl. variants not pinned to the sidebar). Trim with
-  `trim-gallery`. Full menu: `docs/gallery-catalogue.md`.
+  catalogue of every shape (incl. variants not pinned to the sidebar). Repo-only
+  too — stripped from the scaffold base. Full menu: `docs/gallery-catalogue.md`.
 
 Anchors: generated CRUD resources insert at `// create-resource:anchor` (in the first
 business group); new business-case groups go above `// gallery:anchor`; the `Skills · …`
@@ -248,7 +250,7 @@ the Drizzle table); then customise the fields and migrate. Walkthrough: `docs/re
 - `bun run check` / `lint` / `format` — Biome. `bun run typecheck` — `tsr generate` + `tsc --noEmit`. `bun run test` — Vitest.
 - `bun run sync-skills` / `sync-skills --check` — regenerate skill `templates/` from repo source / verify in sync (the drift guard).
 - `bun run build-base` — reassemble the `scaffold-dashboard` base bundle.
-- `bun run create-resource <name>` — scaffold a CRUD resource. `bun run strip-demo` — remove the demo resources.
+- `bun run create-resource <name>` — scaffold a CRUD resource.
 - `bun run db:up` / `db:down` / `db:generate` / `db:migrate` / `db:push` / `db:studio` / `db:seed` — Postgres (Docker) + Drizzle.
 
 See `README.md` for setup, `PATTERNS.md` for the shape catalogue, `PORTING.md` to start

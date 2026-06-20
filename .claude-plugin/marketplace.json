@@ -4,7 +4,7 @@
   "owner": {
     "name": "ahpx"
   },
-  "description": "Open Dashboard — an `add-component` catalogue of 35+ copy-ready admin UI shapes (CRUD, detail, master-detail, kanban, calendar, wizard, billing, RBAC, i18n, …) plus operation skills (scaffold, crud-resource, backend-preset, rebrand, strip-demo, trim-gallery, tests). The shapes compose on top of the scaffold-dashboard foundation (a TanStack Start back-office substrate).",
+  "description": "Open Dashboard — an `add-component` catalogue of 35+ copy-ready admin UI shapes (CRUD, detail, master-detail, kanban, calendar, wizard, billing, RBAC, i18n, …) plus operation skills (scaffold, crud-resource, data-source, backend-preset, rebrand, tests). The shapes compose on top of the scaffold-dashboard foundation (a TanStack Start back-office substrate).",
   "version": "0.2.0",
   "plugins": [
     {
@@ -12,7 +12,7 @@
       "displayName": "Open Dashboard",
       "source": "./",
       "strict": false,
-      "description": "The full Open Dashboard skill catalogue — the `add-component` skill (a retriever over 35+ UI shapes: forms, lists & tables, kanban/calendar/tree/timeline, detail & pages, display & feedback, RBAC/auth/i18n/billing/search/realtime) plus the operation skills (scaffold-dashboard, add-crud-resource, add-data-source, add-backend-preset, rebrand, strip-demo, trim-gallery, add-tests). The shapes assume the scaffold-dashboard base (TanStack Start + the platform layer) — run scaffold-dashboard or fork the repo first, then compose the shapes on top.",
+      "description": "The full Open Dashboard skill catalogue — the `add-component` skill (a retriever over 35+ UI shapes: forms, lists & tables, kanban/calendar/tree/timeline, detail & pages, display & feedback, RBAC/auth/i18n/billing/search/realtime) plus the operation skills (scaffold-dashboard, add-crud-resource, add-data-source, add-backend-preset, rebrand, add-tests). The shapes assume the scaffold-dashboard base (TanStack Start + the platform layer) — run scaffold-dashboard first, then compose the shapes on top.",
       "version": "0.2.0",
       "author": {
         "name": "ahpx"

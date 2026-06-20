@@ -48,8 +48,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
  * the `Skills · …` groups); this Overview lists every shape — including the
  * variants not pinned to the sidebar — grouped into URL-synced tabs. The
  * business cases in the sidebar show these shapes *composed* into real products;
- * this page is the catalogue you pick from. On port, keep what you need and run
- * `trim-gallery`.
+ * this page is the catalogue you pick from. It is repo-only proof — the
+ * `scaffold-dashboard` base ships without it (`build-base` strips the gallery).
  */
 
 type CategoryKey = "forms" | "lists" | "rich" | "pages" | "feedback";
@@ -397,11 +397,12 @@ function GalleryOverview() {
         </h1>
         <p className="mt-1 max-w-prose text-sm text-muted-foreground">
           A palette of admin UI shapes — forms, lists, pages, and rich views,
-          one per skill. Each card opens a self-contained, zero-config demo. The
-          business cases in the sidebar (E-commerce, CRM) show these shapes{" "}
-          <em>composed</em> into real products; this page is the catalogue you
-          pick from. On port, keep what your product needs and run{" "}
-          <code>trim-gallery</code> to delete the rest.
+          each a component in the <code>add-component</code> skill. Each card
+          opens a self-contained, zero-config demo. The business cases in the
+          sidebar (E-commerce, CRM) show these shapes <em>composed</em> into
+          real products; this page is the catalogue you pick from. It's
+          repo-only — a scaffolded product starts without it and adds just the
+          shapes it needs.
         </p>
       </div>
 

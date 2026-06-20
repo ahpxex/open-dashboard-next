@@ -1,9 +1,12 @@
 # Gallery catalogue
 
-> The **Skills Gallery**: a rich palette an agent picks from and **trims on port**
-> (`trim-gallery`). All variants below are **built, green
-> (typecheck/check/test/build), and zero-config runnable** — each is a
-> self-contained route under `src/routes/_app/gallery/`, surfaced both by the
+> The **Skills Gallery** is **repo-only proof**: a rich palette of working shapes
+> the substrate typechecks/builds/tests/renders, so each shape is the live evidence
+> its `add-component` reference produces working UI. It is **stripped from the
+> scaffold base** by `build-base` — a scaffolded product starts gallery-free and
+> **adds** the shapes it needs from `add-component`. All variants below are
+> **built, green (typecheck/check/test/build), and zero-config runnable** — each is
+> a self-contained route under `src/routes/_app/gallery/`, surfaced both by the
 > tabbed **`Skills Gallery · Overview`** (`/gallery`, `gallery/index.tsx`) and by a
 > per-shape sidebar entry under the `Skills · …` groups.
 >
@@ -13,9 +16,8 @@
 > under `.claude/skills/add-component/templates/`. The component identifiers
 > (`add-form`, `add-kanban`, …) live on as those reference docs; they are no longer
 > standalone skill directories. The handful of names that remain **standalone
-> skills** (`add-crud-resource`, `add-master-detail`, `add-detail-page`,
-> `add-card-list`, `add-chart-page`, `add-data-source`, `add-backend-preset`,
-> `trim-gallery`, …) are called out as such in the rows below.
+> skills** (`add-crud-resource`, `add-data-source`, `add-backend-preset`, …) are
+> called out as such in the rows below.
 >
 > The sidebar's two **business-case groups** (E-commerce, Sales/CRM) **compose**
 > these shapes into real back-offices — see the "Business cases" section of
@@ -31,9 +33,9 @@ standalone `add-*` skill or a component (reference doc) inside `add-component`.
 1. **Same conventions as everything else.** `ListParams` shape, `Repository` +
    `AuthProvider` seams, query keys `["<res>","list",params]`, URL-synced state,
    explicit loading / empty / error. Consistency beats count (ROADMAP #2).
-2. **Self-contained + independently removable.** One route (+ one `features/<name>/`
-   folder if it has data). Deleting it touches nothing else — this is what lets the
-   agent **trim on port**.
+2. **Self-contained + independently strippable.** One route (+ one `features/<name>/`
+   folder if it has data). Deleting it touches nothing else — this is what lets
+   `build-base` drop the whole gallery from the scaffold base cleanly.
 3. **Every variant is addable** — via a standalone `add-*` skill or, for the UI
    shapes, via its component reference doc in `add-component` — and has a catalogue
    row. If an agent can't add it, it isn't done (ROADMAP #6).
@@ -149,22 +151,26 @@ on. Each is documented once and demonstrated by ≥1 variant below.
   the single `add-component` skill — each with a reference doc
   (`.claude/skills/add-component/references/<name>.md`) carrying the
   add-it / foundation / invariants / verify steps, plus its template under
-  `.claude/skills/add-component/templates/`. Removal is handled centrally by
-  `trim-gallery` (no per-shape `remove-*` skill).
-- **Standalone operation skills** stay their own directories: `add-crud-resource`,
-  `add-data-source`, `add-backend-preset`, `scaffold-dashboard`, `rebrand`,
-  `strip-demo`, `trim-gallery`, `add-tests`.
+  `.claude/skills/add-component/templates/`. The gallery itself is repo-only proof
+  and is stripped from the scaffold base by `build-base` (no per-shape `remove-*`
+  skill).
+- **Standalone operation skills** stay their own directories: `scaffold-dashboard`,
+  `add-crud-resource`, `add-data-source`, `add-backend-preset`, `rebrand`,
+  `add-tests`.
 - **Options as composable docs**: pagination / infinite / lazy / searchable /
   filterable / selectable / custom-actions / scroll-vs-fixed are documented once
   in `add-component` and referenced by each component, not re-explained per variant.
 
-## Trim on port
+## Stripped from the scaffold base
 
-Because every variant is self-contained, the **`trim-gallery`** skill keeps the
-shapes the brief needs and deletes the rest: edit the `SHAPES` array in
-`gallery/index.tsx`, delete the matching route files, and remove each dropped
-shape's entry from its `Skills · …` group in `sidebar-items.ts`. Remove the
-`Skills Gallery` + all `Skills · …` groups to drop the gallery entirely.
+The gallery is repo-only proof: it ships in this substrate so every shape is
+verified and visible, but it is **not** part of the product base. `build-base`
+strips it when assembling the `scaffold-dashboard` bundle — it drops the
+`gallery/*` routes, the `SHAPES` array in `gallery/index.tsx`, and the
+`Skills Gallery` + all `Skills · …` sidebar groups. A scaffolded product therefore
+starts gallery-free and **composes** the shapes it needs from `add-component`. To
+explore the shapes live, `git clone` the full repo and run `bun dev`, then build
+your product in a fresh scaffold.
 
 ## Suggested build order (each phase ends zero-config-green + signed off)
 
@@ -174,7 +180,6 @@ shape's entry from its `Skills · …` group in `sidebar-items.ts`. Remove the
 3. **Pages**: control/settings, profile, empty-state, split-layout.
 4. **Rich lists**: kanban, tree, calendar, timeline.
 5. **Display + feedback blocks**: drawer, state-kit, tag/metadata/avatar, banners.
-6. **Trim**: `trim-gallery` skill + per-archetype `remove-*` + catalogue wired to nav.
 
 ---
 
@@ -187,7 +192,8 @@ shape's entry from its `Skills · …` group in `sidebar-items.ts`. Remove the
   skill under the `Skills · …` groups.
 - **Routes**: all gallery demos nested under `src/routes/_app/gallery/*` (+ a few
   components under `src/components/{data,feedback}` and `ComboboxField.tsx`), so the
-  whole gallery trims as a unit via `trim-gallery`.
+  whole gallery strips as a unit from the scaffold base via `build-base`.
 - **Skills**: every shape is a component in the single `add-component` skill (see
   `.claude/skills/add-component/` — one `references/<name>.md` + template per
-  shape), plus `trim-gallery` for removal. Structure documented in `CLAUDE.md`.
+  shape); the gallery is stripped from the scaffold base by `build-base`. Structure
+  documented in `CLAUDE.md`.

@@ -1,24 +1,33 @@
 # Porting this template into a real product
 
-Hand this repo (and its `.claude/` skills) to an agent with a product brief and
-it can compose the app from a known vocabulary of admin *shapes*. This is the
-round-trip the platform is built for. Do it in four moves.
+Hand the `.claude/` skills to an agent with a product brief and it can compose
+the app from a known vocabulary of admin *shapes*. This is the round-trip the
+platform is built for. The model is **scaffold-first**: stand up a clean base in
+a new project, then *add* only what the brief needs — you never clone the full
+repo and prune it. Do it in five moves.
 
 > Slash command: `/port <brief>` runs this end-to-end. Or follow it by hand.
+>
+> Want to see the shapes live before you build? `git clone` this repo and run
+> `bun run dev` to browse the demos and the Skills Gallery — then build your
+> product in a fresh scaffold (below). The repo is a reference, not the starting
+> point.
 
-## 1. Rebrand → skill `rebrand`
+## 1. Scaffold the base → skill `scaffold-dashboard`
+
+Stand up the platform layer in a new project: UI primitives, the form system,
+charts, the `Repository` + adapters, the auth seam, theme, and the routing/auth
+shell — a zero-config runnable app. The base ships **demo-free and gallery-free**
+(`build-base.ts` already strips the `products` / `orders` / `posts` demo
+resources, the Skills Gallery, and the dev-only scripts), so there is nothing to
+remove — you compose screens onto it from the `add-*` skills. `bun run dev`.
+
+## 2. Rebrand → skill `rebrand`
 
 Set the product name, logo, description, and theme in `src/config/app.ts`
 (the single rebrand surface — sidebar, document title, auth pages all read it).
 Edit navigation in `src/lib/sidebar-items.ts`; theme colours are CSS variables
 in `src/styles/app.css`. `bun run check`.
-
-## 2. Strip the demo → skill `strip-demo`
-
-Remove the `products` / `orders` / `posts` demo resources and the sample
-dashboard, leaving a clean, branded shell. Keep everything under
-`src/components`, `src/infra`, `src/config`, `src/lib`, the routing/auth shell,
-and the generator. Migrate away the demo tables. `bun run typecheck && check`.
 
 ## 3. Pick the backend → skills `add-data-source`, `add-backend-preset`
 
@@ -59,11 +68,13 @@ The shape rows above are reference docs inside the single `add-component`
 catalogue (`add-component` → `references/<name>.md`); `add-crud-resource` is a
 standalone operation skill.
 
-`products` (rich, Drizzle), `orders` (master-detail, Drizzle), and `posts`
-(card list, REST) are the canonical examples — copy the closest one.
+Each skill points at the canonical example to copy (`products` is rich/Drizzle,
+`orders` is master-detail/Drizzle, `posts` is card-list/REST). These live in the
+source repo; if you cloned it to explore, copy the closest one — otherwise the
+skill's reference doc carries the template.
 
 ## Definition of done
 
 The brief's screens exist, each built from the catalogue (`PATTERNS.md`), and
 `bun run typecheck && bun run check && bun run test && bun run build` are all
-green. Nothing hardcodes the old brand; no demo resource remains.
+green. Nothing hardcodes the old brand.

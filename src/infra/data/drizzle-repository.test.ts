@@ -39,8 +39,8 @@ import {
 import { drizzleRepository } from "./drizzle-repository";
 
 // A self-contained fixture table so this adapter test depends on no demo
-// resource — the demo (`products`/`orders`/`posts`) is removable via
-// `bun run strip-demo`, and the platform tests must stay green afterwards.
+// resource — the demo (`products`/`orders`/`posts`) is repo-only (a scaffolded
+// product ships without it), and the platform tests must stay green regardless.
 const items = pgTable("items", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),

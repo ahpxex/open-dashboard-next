@@ -44,9 +44,8 @@ copy a pile of gallery shapes into the nav. Don't. Instead:
   `add-chart-page` — KPIs + charts derived from your actual resources. Shipping the
   scaffold welcome as the product home is the #1 tell of a demo.
 - **Nav = real product sections only:** Overview, your resources, Settings. The
-  `gallery/*` routes are a **palette to learn shapes from — never product pages**;
-  do not list them in `src/lib/sidebar-items.ts`. When you've composed the app,
-  run `trim-gallery` to delete the gallery entirely.
+  scaffold base ships clean (no demo resources, no Skills Gallery) — you add
+  product sections to `src/lib/sidebar-items.ts`, you don't prune sample ones.
 - **Pick the archetype that fits each resource's shape**, don't add one of each:
   flat list → CRUD table (`add-crud-resource`); rich record → + `add-detail-page`;
   an inbox you triage → `add-master-detail`; a staged pipeline → `add-kanban`;
