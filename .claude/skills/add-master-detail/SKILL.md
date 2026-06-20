@@ -31,7 +31,9 @@ Then in the copied files:
 3. `<name>.$id.tsx` (panel): point the `loader` at `<name>DetailQuery(params.id)`
    and adjust the `<aside>` header / `DescriptionList` / Edit-Delete to your
    fields. Close = `navigate({ to: "/<name>", search: (prev) => prev })` (preserves
-   list params).
+   list params). Keep the route's `notFoundComponent` (the loader `throw notFound()`s
+   on a stale id) so a missing record shows the not-found state *inside the panel*
+   instead of replacing the whole split layout.
 
 These templates wire the real `orders` resource. A new master-detail view also
 needs a matching `features/<name>/` resource that exports a `<name>DetailQuery`
@@ -56,6 +58,8 @@ config + form dialog).
 - Selection lives in the URL (`/<name>/$id`); the list stays mounted and keeps
   its search params.
 - The list query stays cached while the panel loads its own detail query.
+- A stale/deleted id resolves to the route's own `notFoundComponent` (rendered in
+  the panel chrome), never the app-wide default not-found page.
 
 ## Verify
 

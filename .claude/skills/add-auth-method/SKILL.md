@@ -51,8 +51,14 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
-  // magicLink() goes in plugins — see below.
-  plugins: [magicLink({ sendMagicLink: async ({ email, url }) => { /* email it */ } }), tanstackStartCookies()],
+  // Insert plugins above the `auth-plugins:anchor` line in src/lib/auth.ts so
+  // tanstackStartCookies() stays last; multiple auth skills can then stack
+  // deterministically instead of hand-merging the array.
+  plugins: [
+    magicLink({ sendMagicLink: async ({ email, url }) => { /* email it */ } }),
+    // auth-plugins:anchor (keep tanstackStartCookies last)
+    tanstackStartCookies(),
+  ],
 });
 ```
 
@@ -79,7 +85,8 @@ routes under `src/routes/_auth/*`, `@/components/ui/{button,card,input,label,ale
 ## Invariants
 
 - **`tanstackStartCookies()` MUST stay the LAST plugin** in `plugins` (it flushes
-  `Set-Cookie`) — add `magicLink()` before it, never after.
+  `Set-Cookie`) — insert `magicLink()` (and any other plugin) above the
+  `// auth-plugins:anchor` line in `src/lib/auth.ts`, never after the cookies plugin.
 - Each in-memory model a plugin needs must exist in `memoryStore` in
   `src/lib/auth.ts` (`verification` is already there).
 - The browser only ever talks to `authClient` (`@/lib/auth-client`) — never import

@@ -1,7 +1,7 @@
 import { PencilSimpleIcon, TrashIcon, XIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,7 +19,46 @@ export const Route = createFileRoute("/_app/orders/$id")({
     if (!order) throw notFound();
   },
   component: OrderPanel,
+  // Keep the master list mounted when the id is stale: render the not-found
+  // state inside the panel chrome instead of falling through to the app-wide
+  // default not-found component (which would replace the whole split layout).
+  notFoundComponent: OrderNotFound,
 });
+
+/** Panel shell — the bordered `<aside>` with a close button, shared by the
+ * record panel and its not-found state so the master list stays put. */
+function PanelShell({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const close = () => navigate({ to: "/orders", search: (prev) => prev });
+  return (
+    <aside className="w-full shrink-0 border border-border p-5 lg:w-96">
+      <div className="flex items-start justify-end">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={close}
+          aria-label="Close panel"
+        >
+          <XIcon size={16} />
+        </Button>
+      </div>
+      {children}
+    </aside>
+  );
+}
+
+function OrderNotFound() {
+  return (
+    <PanelShell>
+      <div className="-mt-4 flex flex-col gap-1">
+        <h2 className="text-base font-semibold">Order not found</h2>
+        <p className="text-sm text-muted-foreground">
+          This order may have been deleted. Pick another from the list.
+        </p>
+      </div>
+    </PanelShell>
+  );
+}
 
 function OrderPanel() {
   const { id } = Route.useParams();

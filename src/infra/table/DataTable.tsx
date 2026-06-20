@@ -7,6 +7,7 @@ import {
   type RowSelectionState,
   type SortingState,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -45,6 +46,10 @@ export interface DataTableProps<T> {
   // sorting (controlled, server-side)
   sorting?: SortingState;
   onSortingChange?: OnChangeFn<SortingState>;
+
+  // column visibility (controlled; opt-in — pair with `ColumnControls`)
+  columnVisibility?: VisibilityState;
+  onColumnVisibilityChange?: OnChangeFn<VisibilityState>;
 
   // pagination (controlled, 1-based page)
   page: number;
@@ -94,6 +99,8 @@ export function DataTable<T>({
   onRefresh,
   sorting = [],
   onSortingChange,
+  columnVisibility = {},
+  onColumnVisibilityChange,
   page,
   pageSize,
   pageSizeOptions = [10, 20, 50],
@@ -148,8 +155,9 @@ export function DataTable<T>({
   const table = useReactTable({
     data,
     columns: tableColumns,
-    state: { sorting, rowSelection },
+    state: { sorting, rowSelection, columnVisibility },
     onSortingChange,
+    onColumnVisibilityChange,
     enableRowSelection,
     onRowSelectionChange,
     getRowId,

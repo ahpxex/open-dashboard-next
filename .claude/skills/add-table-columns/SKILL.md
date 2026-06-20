@@ -24,9 +24,12 @@ cp .claude/skills/add-table-columns/templates/table-columns.tsx src/routes/_app/
    state, pass them into `useReactTable({ state, onColumnVisibilityChange })`,
    and render `<ColumnControls table density onDensityChange />`. Map density to
    cell padding.
-4. On the generic `DataTable`, lift the same `columnVisibility`/`density` state
-   into the page and feed `DataTable`'s `state`/`onColumnVisibilityChange` props
-   (it already passes them to `useReactTable`).
+4. To use this on the generic server-driven `DataTable` (the `features/<name>`
+   pages) instead of the bundled standalone demo: own `columnVisibility`
+   (a `VisibilityState`) in the page and pass it down — `DataTable` accepts
+   `columnVisibility` + `onColumnVisibilityChange` props and merges them into its
+   own `useReactTable`. Render `ColumnControls` in the page's `toolbarActions`,
+   handing it a `table` instance whose columns mirror your `ColumnDef`s.
 
 (Only open the template if you need to customise it — copying costs no context.)
 

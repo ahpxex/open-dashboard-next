@@ -22,7 +22,13 @@ import {
  */
 export interface ViewState {
   search: string;
-  filters: Record<string, string>;
+  /**
+   * Filter values, matching the `ListParams.filters` shape a resource sends to
+   * its repository. A value is a single string for a plain select, or a
+   * `string[]` for a multi-select / checkbox group (as `add-filter-panel`
+   * produces) — so a saved view round-trips either kind without narrowing.
+   */
+  filters: Record<string, string | string[]>;
   sort: { id: string; desc: boolean } | null;
 }
 

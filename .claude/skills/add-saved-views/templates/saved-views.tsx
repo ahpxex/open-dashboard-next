@@ -143,7 +143,10 @@ function SavedViewsDemo() {
 
   function applyView(state: ViewState) {
     setSearch(state.search);
-    setStatus(state.filters.status ?? "all");
+    // This demo's `status` is single-value; ViewState.filters allows string[]
+    // too (for multi-selects), so read the single string defensively.
+    const savedStatus = state.filters.status;
+    setStatus(typeof savedStatus === "string" ? savedStatus : "all");
     setSort(state.sort);
   }
 
