@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-A full-stack back-office / dashboard starter ("中台" template) for shipping SaaS and internal-tool backends faster. This file orients AI agents working in the repo.
+An **AI-native, agent-composable** back-office / dashboard substrate (a "中台" template) — not a clone-and-hand-edit boilerplate. The repo is the **source of truth for 40+ skills** (`.claude/skills/`), each a copy-ready admin UI *shape* (CRUD, detail, master-detail, kanban, calendar, wizard, billing, RBAC, i18n, …), and a **Skills Gallery** that renders every skill's own demo — kept byte-for-byte in sync with the repo's working code via `sync-skills`, so a skill never ships code the repo hasn't typechecked/built/tested. An agent forks this repo and **composes** a real product from the skills. It is also a real full-stack app (TanStack Start + Drizzle + better-auth) that runs **zero-config** on in-memory adapters (add `DATABASE_URL` for Postgres). This file orients AI agents working in the repo.
 
 ## Tech Stack
 
@@ -98,7 +98,7 @@ routes + its sidebar group; the `strip-demo` skill documents it).
 
 ### Agent layer
 
-`.claude/skills/*` (one per archetype/operation: `add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-form`, `add-chart-page`, `add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`), `.claude/commands/*` (`/add-resource`, `/port`), `PATTERNS.md` (the catalogue), and `PORTING.md` (how to start a real product). Find the closest pattern, copy its canonical example, follow its invariants.
+`.claude/skills/*` — **40+ skills**, the heart of the template. They split into **archetype/operation** skills (`add-crud-resource`, `add-detail-page`, `add-master-detail`, `add-card-list`, `add-chart-page`, `add-form`, `add-data-source`, `add-backend-preset`, `rebrand`, `strip-demo`, `trim-gallery`, `scaffold-dashboard`) and **shape** skills — one per Skills-Gallery demo (`add-kanban`, `add-calendar`, `add-tree-view`, `add-timeline`, `add-wizard-form`, `add-inline-edit`, `add-virtual-table`, `add-table-columns`, `add-saved-views`, `add-global-search`, `add-rbac`, `add-billing`, `add-i18n`, `add-notifications`, `add-audit-log`, …). Each bundles copy-ready `templates/` **generated from the repo's own working source** by `scripts/sync-skills.ts` (one-way; `bun run sync-skills --check` is the drift guard), so a distributed skill always carries code the repo has typechecked/built/tested — the Skills Gallery is the live proof. `scripts/build-base.ts` assembles the clean base bundle that `scaffold-dashboard` ships. Plus `.claude/commands/*` (`/add-resource`, `/port`), `PATTERNS.md` (the catalogue), and `PORTING.md` (how to start a real product). Find the closest pattern, copy its canonical example, follow its invariants.
 
 ## How to add a resource
 
