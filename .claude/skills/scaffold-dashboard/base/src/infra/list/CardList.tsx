@@ -98,7 +98,11 @@ export function CardList<T>({
         ) : null}
       </div>
 
-      <div className="-mx-0.5 min-h-0 flex-1 overflow-auto px-0.5">
+      {/* Cards outline with `ring-1` (drawn OUTSIDE the box), so the scroll
+          container needs padding on ALL sides — the matching negative margin
+          keeps the layout flush — or the top/bottom rings clip at the scroll
+          edges (only `px` here left them clipped vertically). */}
+      <div className="-m-0.5 min-h-0 flex-1 overflow-auto p-0.5">
         {isLoading && data.length === 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: skeletonCount }, (_, i) => (

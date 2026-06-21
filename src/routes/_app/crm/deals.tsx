@@ -113,7 +113,9 @@ function DealsPipeline() {
                 <Badge variant="outline">{currency(total)}</Badge>
               </div>
 
-              <div className="-mx-0.5 flex max-h-[32rem] flex-col gap-2 overflow-y-auto px-0.5">
+              {/* Pad all sides: cards outline with `ring-1` (drawn outside the
+                  box) and would clip top/bottom at the scroll edges otherwise. */}
+              <div className="-m-0.5 flex max-h-[32rem] flex-col gap-2 overflow-y-auto p-0.5">
                 {cards.length === 0 ? (
                   <p className="px-1 py-6 text-center text-xs text-muted-foreground">
                     No deals
