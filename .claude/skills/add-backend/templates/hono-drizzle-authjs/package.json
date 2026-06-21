@@ -1,0 +1,27 @@
+{
+  "name": "hono-drizzle-authjs",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Standalone Hono + Drizzle + Auth.js (NextAuth) v5 backend preset speaking the open-dashboard wire contract (json-server REST products + remote Auth.js credentials).",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@auth/core": "0.40.0",
+    "@hono/auth-js": "1.1.1",
+    "bcryptjs": "3.0.3",
+    "drizzle-orm": "0.45.2",
+    "hono": "4.12.26",
+    "pg": "8.22.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.14",
+    "@types/pg": "8.11.10",
+    "typescript": "5.7.3"
+  }
+}

@@ -1,0 +1,71 @@
+# Supabase project config. Minimal, valid for `supabase start` / `db reset`.
+# Docs: https://supabase.com/docs/guides/local-development/cli/config
+# A string used to distinguish different Supabase projects on the same host.
+project_id = "open-dashboard"
+
+[api]
+enabled = true
+# Port the local PostgREST + Auth + Storage gateway listens on. The frontend's
+# SUPABASE_URL points here for local dev: http://127.0.0.1:54321
+port = 54321
+# Schemas exposed over the REST (PostgREST) API. `public` holds `products`.
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+# Max rows returned in a single REST request (caps unbounded list queries).
+max_rows = 1000
+
+[db]
+# Local Postgres port.
+port = 54322
+# Port used by `supabase db pull/diff` shadow database.
+shadow_port = 54320
+# Must match the major version of your hosted project's Postgres.
+major_version = 15
+
+[db.seed]
+# Run seed.sql on `supabase start` / `supabase db reset`.
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+# The hosted API URL the local Studio talks to.
+api_url = "http://127.0.0.1"
+
+# Email testing server. Captures outbound auth emails locally (Inbucket/Mailpit).
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+# The base URL of your site, used for redirects + email links. Point this at the
+# dashboard frontend origin in real use.
+site_url = "http://127.0.0.1:3000"
+# Extra redirect URLs allowed after auth (e.g. local frontend ports).
+additional_redirect_urls = ["http://127.0.0.1:3000"]
+# JWT lifetime (seconds). 3600 = 1h; refresh tokens extend the session.
+jwt_expiry = 3600
+# Allow refresh-token rotation.
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Allow new users to sign up.
+enable_signup = true
+
+[auth.email]
+# Email + password auth (matches the dashboard's better-auth default surface).
+enable_signup = true
+double_confirm_changes = true
+# For local dev, skip the email-confirmation step so register -> login works
+# immediately. In a hosted project, turn confirmations ON for production.
+enable_confirmations = false
+
+# Realtime (websocket) — not required by the products resource, left enabled
+# so the `add-realtime` shape can layer on without reconfiguring.
+[realtime]
+enabled = true

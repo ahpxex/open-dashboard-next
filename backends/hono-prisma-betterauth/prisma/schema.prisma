@@ -1,0 +1,99 @@
+// Canonical Prisma schema — the zero-config SQLite default (CONTRACT.md §3).
+//
+// Models match better-auth's expected Prisma shape (User / Session / Account /
+// Verification — https://www.better-auth.com/docs/adapters/prisma) plus the
+// `products` business table from CONTRACT.md §0. `@@map` pins the physical table
+// names to better-auth's singular convention (user/session/account/verification).
+//
+// When DATABASE_URL is set, `scripts/prisma.ts` swaps in the byte-identical
+// Postgres variant (`prisma/schema.postgres.prisma`, provider = postgresql)
+// before `prisma db push` / `prisma generate`. The generated client lands in the
+// default location and is gitignored; this file is the committed source.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("PRISMA_DATABASE_URL")
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Product {
+  id          String   @id
+  name        String
+  sku         String
+  category    String
+  price       Float
+  stock       Int
+  status      String
+  description String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+  @@map("products")
+}
