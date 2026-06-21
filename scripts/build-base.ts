@@ -35,6 +35,7 @@ execFileSync(
     "--exclude=drizzle",
     "--exclude=dist",
     "--exclude=.env",
+    "--exclude=.vscode",
     "--exclude=src/routeTree.gen.ts",
     "--exclude=docs",
     // The standalone backend presets are distributed via the add-backend skill

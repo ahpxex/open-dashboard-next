@@ -26,6 +26,8 @@ src/routeTree.gen.ts
 *.pem
 .vercel
 .serena
+.vscode/
+.idea/
 
 # logs
 npm-debug.log*
