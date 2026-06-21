@@ -14,7 +14,8 @@
       "!build",
       "!drizzle",
       "!src/routeTree.gen.ts",
-      "!.claude"
+      "!.claude",
+      "!backends"
     ]
   },
   "formatter": {

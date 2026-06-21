@@ -6,7 +6,8 @@
     ".nitro",
     "dist",
     ".legacy",
-    ".claude"
+    ".claude",
+    "backends"
   ],
   "compilerOptions": {
     "target": "ES2022",

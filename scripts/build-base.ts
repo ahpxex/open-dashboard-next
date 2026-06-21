@@ -37,6 +37,10 @@ execFileSync(
     "--exclude=.env",
     "--exclude=src/routeTree.gen.ts",
     "--exclude=docs",
+    // The standalone backend presets are distributed via the add-backend skill
+    // (its templates/), not bundled into every scaffolded app. The dormant
+    // frontend wiring (src/lib/auth-providers, auth-clients) DOES stay in the base.
+    "--exclude=backends",
     `${root}/`,
     `${base}/`,
   ],

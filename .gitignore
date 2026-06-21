@@ -32,3 +32,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# backend templates: commit the source, ignore anything installed/built locally
+backends/**/node_modules
+backends/**/.venv
+backends/**/__pycache__
+backends/**/.pytest_cache
+backends/**/.ruff_cache
+backends/**/dist
+backends/**/.output
+backends/**/*.db
+backends/**/*.sqlite
+backends/**/.env

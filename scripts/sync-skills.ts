@@ -11,8 +11,15 @@
  * test for every bundled template.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { basename, dirname, join, relative } from "node:path";
 
 const root = process.cwd();
 const skillsDir = join(root, ".claude/skills");
@@ -143,6 +150,60 @@ const MANIFEST: Record<string, string[]> = {
   "add-tests": ["src/features/__examples__/resource.test.ts"],
 };
 
+/**
+ * Whole-directory-tree templates: skill name -> source directories copied
+ * **recursively** (structure preserved) into that skill's
+ * `templates/<basename>/`. Unlike MANIFEST (flat, single files keyed by
+ * basename), these carry nested, multi-file project templates — the standalone
+ * backend presets the `add-backend` skill ships. `backends/` is their in-repo
+ * source of truth and is excluded from the root toolchain (see
+ * `backends/README.md`). Add a preset here once its `backends/<preset>` exists.
+ */
+const TREE_MANIFEST: Record<string, string[]> = {
+  "add-backend": [
+    "backends/tanstack-drizzle-betterauth",
+    "backends/hono-drizzle-betterauth",
+    "backends/hono-prisma-betterauth",
+    "backends/hono-drizzle-authjs",
+    "backends/fastapi-sqlalchemy-jwt",
+    "backends/supabase",
+  ],
+};
+
+/** Names / extensions never copied into a template tree (installed/built junk). */
+const TREE_IGNORE_DIRS = new Set([
+  "node_modules",
+  ".venv",
+  "__pycache__",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".mypy_cache",
+  "dist",
+  ".output",
+  ".nitro",
+  ".git",
+]);
+const TREE_IGNORE_FILES = (name: string) =>
+  name === ".DS_Store" ||
+  name.endsWith(".db") ||
+  name.endsWith(".sqlite") ||
+  name.endsWith(".pyc") ||
+  name.endsWith(".log");
+
+/** All file paths under `dir` (recursive), relative to `base`, junk skipped. */
+function walkTree(dir: string, base: string = dir): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (TREE_IGNORE_DIRS.has(entry.name)) continue;
+      out.push(...walkTree(join(dir, entry.name), base));
+    } else if (entry.isFile() && !TREE_IGNORE_FILES(entry.name)) {
+      out.push(relative(base, join(dir, entry.name)));
+    }
+  }
+  return out;
+}
+
 const check = process.argv.includes("--check");
 let drift = 0;
 let copied = 0;
@@ -182,6 +243,53 @@ for (const [skill, sources] of Object.entries(MANIFEST)) {
       mkdirSync(templatesDir, { recursive: true });
       writeFileSync(to, content);
       copied++;
+    }
+  }
+}
+
+// Directory-tree templates (recursive). Each source dir -> templates/<basename>/.
+for (const [skill, sources] of Object.entries(TREE_MANIFEST)) {
+  const templatesDir = join(skillsDir, skill, "templates");
+  for (const src of sources) {
+    const from = join(root, src);
+    const dest = join(templatesDir, basename(src));
+    if (!existsSync(from)) {
+      console.error(`  missing source dir: ${src} (for ${skill})`);
+      missing++;
+      continue;
+    }
+    const files = walkTree(from);
+
+    if (check) {
+      // drift: every source file must exist byte-identical in the template
+      for (const rel of files) {
+        const content = readFileSync(join(from, rel), "utf8");
+        const to = join(dest, rel);
+        const current = existsSync(to) ? readFileSync(to, "utf8") : null;
+        if (current !== content) {
+          console.error(`  drift: ${skill}/templates/${basename(src)}/${rel}`);
+          drift++;
+        }
+      }
+      // orphans: template files with no surviving source (deleted upstream)
+      const sourceSet = new Set(files);
+      for (const rel of existsSync(dest) ? walkTree(dest) : []) {
+        if (!sourceSet.has(rel)) {
+          console.error(
+            `  orphan: ${skill}/templates/${basename(src)}/${rel} (no source)`,
+          );
+          drift++;
+        }
+      }
+    } else {
+      // Regenerate the preset subtree from scratch so deletions propagate.
+      rmSync(dest, { recursive: true, force: true });
+      for (const rel of files) {
+        const to = join(dest, rel);
+        mkdirSync(dirname(to), { recursive: true });
+        writeFileSync(to, readFileSync(join(from, rel)));
+        copied++;
+      }
     }
   }
 }
