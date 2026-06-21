@@ -19,7 +19,7 @@ import { authHandler, initAuthConfig } from "@hono/auth-js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { authConfig } from "./auth";
-import { frontendOrigin } from "./lib/env";
+import { dataApiToken, frontendOrigin } from "./lib/env";
 import { productsRoutes } from "./products";
 import { registerRoutes } from "./register";
 
@@ -59,6 +59,33 @@ app.route("/api/auth", registerRoutes);
 // callback/credentials, signout, ...).
 app.use("/api/auth/*", authHandler());
 
+// Optional data-API bearer guard (CONTRACT §1). When DATA_API_TOKEN is set,
+// every /products route requires `Authorization: Bearer <DATA_API_TOKEN>`;
+// otherwise the data routes stay open (zero-config dev). The auth routes above
+// are intentionally NOT gated — they run their own Auth.js flow. The frontend
+// forwards the token via restRepository's `headers`. The middleware is always
+// mounted and reads the token live per-request, so it reflects the current
+// process env (and is a no-op when unset) rather than a value frozen at import.
+app.use("/products", dataApiGuard);
+app.use("/products/*", dataApiGuard);
+
 app.route("/products", productsRoutes);
 
 app.notFound((c) => c.json({ error: "Not found" }, 404));
+
+/**
+ * Bearer check for the data API. No-op when DATA_API_TOKEN is unset; otherwise
+ * requires an exact `Authorization: Bearer <token>` match and returns the
+ * preset's idiomatic `{ error }` JSON shape with 401 on a mismatch.
+ */
+async function dataApiGuard(
+  c: import("hono").Context,
+  next: import("hono").Next,
+) {
+  if (!dataApiToken()) return next();
+  const header = c.req.header("Authorization") ?? "";
+  if (header !== `Bearer ${dataApiToken()}`) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  return next();
+}

@@ -10,13 +10,22 @@
  */
 import { Hono } from "hono";
 import { z } from "zod";
-import { createUser } from "./lib/users";
+import { createUser, MAX_PASSWORD_BYTES } from "./lib/users";
 
 const registerSchema = z
   .object({
     name: z.string().min(1, "Name is required"),
     email: z.string().email("A valid email is required"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    // bcrypt silently truncates the password at 72 *bytes* (not characters), so
+    // anything longer would hash as if it were cut short — a quiet correctness
+    // and security footgun. Reject it up front with a clear 400 instead.
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .refine(
+        (p) => new TextEncoder().encode(p).length <= MAX_PASSWORD_BYTES,
+        `Password must be at most ${MAX_PASSWORD_BYTES} bytes`,
+      ),
   })
   .strict();
 

@@ -54,14 +54,24 @@ export const authClient = {
     const [data, setData] = useState<AuthSession | null>(null);
     const [isPending, setIsPending] = useState(true);
     useEffect(() => {
+      // Guard against the initial getUser() resolving after unmount (React would
+      // warn about setState on an unmounted component, and we'd leak the update).
+      let active = true;
       supabase.auth
         .getUser()
-        .then(({ data: { user } }) => setData(toSession(user)))
-        .finally(() => setIsPending(false));
+        .then(({ data: { user } }) => {
+          if (active) setData(toSession(user));
+        })
+        .finally(() => {
+          if (active) setIsPending(false);
+        });
       const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-        setData(toSession(session?.user ?? null));
+        if (active) setData(toSession(session?.user ?? null));
       });
-      return () => sub.subscription.unsubscribe();
+      return () => {
+        active = false;
+        sub.subscription.unsubscribe();
+      };
     }, []);
     return { data, isPending };
   },

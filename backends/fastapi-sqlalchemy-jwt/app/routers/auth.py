@@ -11,7 +11,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.auth import create_token, current_user, hash_password, verify_password
+from app.auth import (
+    create_token,
+    current_user,
+    hash_password,
+    verify_password,
+    verify_password_dummy,
+)
 from app.db import get_session
 from app.models import User
 from app.schemas import AuthResponse, LoginInput, RegisterInput, UserOut
@@ -42,7 +48,14 @@ def register(body: RegisterInput, session: Session = Depends(get_session)) -> Au
 def login(body: LoginInput, session: Session = Depends(get_session)) -> AuthResponse:
     email = body.email.lower()
     user = session.scalar(select(User).where(User.email == email))
-    if user is None or not verify_password(body.password, user.password_hash):
+    if user is None:
+        # Run a dummy verify so the no-such-user path costs roughly the same as a
+        # real one — timing must not reveal whether the account exists.
+        verify_password_dummy()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        )
+    if not verify_password(body.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )

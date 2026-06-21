@@ -37,8 +37,12 @@ def create_app() -> FastAPI:
         # Credentials cannot be combined with the "*" wildcard origin per the
         # CORS spec; the frontend proxies server-side so it needs neither.
         allow_credentials=not allow_all,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        # For the credentialed (specific-origin) config, the CORS spec forbids the
+        # "*" wildcard for methods/headers — so list the real ones the API uses
+        # (the data routes + the optional Bearer guard). When origins are "*"
+        # (no credentials) the wildcard is permitted, so keep it for convenience.
+        allow_methods=["*"] if allow_all else ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["*"] if allow_all else ["Authorization", "Content-Type"],
         expose_headers=["X-Total-Count"],
     )
 

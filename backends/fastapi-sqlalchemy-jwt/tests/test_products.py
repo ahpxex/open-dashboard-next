@@ -22,8 +22,11 @@ def test_create_then_list_with_total_count(client):
     assert res.headers["X-Total-Count"] == "1"
 
 
-def test_create_validation_400(client):
-    # Missing required fields / bad status → 422 (FastAPI validation).
+def test_create_validation_422(client):
+    # Missing required fields / bad status / negative price → 422. We keep
+    # FastAPI/Pydantic's NATIVE 422 for request validation (the CONTRACT mentions
+    # 400 generically; this preset standardizes on 422 — see the README). The
+    # orchestrator notes this contract exception centrally.
     res = client.post("/products", json={"name": ""})
     assert res.status_code == 422
     res = client.post("/products", json=make_product(status="bogus"))

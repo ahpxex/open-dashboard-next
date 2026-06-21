@@ -34,13 +34,14 @@ const activeSchema = hasDatabase ? postgresSchema : sqliteSchema;
 
 /**
  * SQLite connection string for the Prisma CLI + the runtime client. SQLITE_PATH
- * is a filesystem path (default ./dev.db, or :memory: for the test suite); Prisma
- * wants a `file:` URL. Relative file paths are resolved against the schema
- * directory by Prisma, so we make it absolute to keep CLI + runtime in sync.
+ * is a filesystem path (default ./dev.db; the test suite uses ./test.db); Prisma
+ * wants a `file:` URL. It must be a real file — `prisma db push` runs in this
+ * separate process from the server, so an in-memory DB would not survive to the
+ * runtime client. Relative file paths are resolved against the schema directory
+ * by Prisma, so we make it absolute to keep CLI + runtime in sync.
  */
 function sqliteUrl(): string {
   const raw = process.env.SQLITE_PATH?.trim() || "./dev.db";
-  if (raw === ":memory:") return "file:memory?mode=memory&cache=shared";
   return `file:${resolve(root, raw)}`;
 }
 

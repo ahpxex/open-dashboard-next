@@ -94,8 +94,16 @@ Body = partial `ProductInput`. `200` with the full updated product. `404` if abs
 
 > The frontend never sends auth on these data calls in the default wiring (the fetch
 > runs inside a server fn that has already called `requireUser()`); the API is reached
-> over a trusted server-to-server hop. A preset MAY additionally require a bearer token
-> on data routes — if so, document the env var the wiring must forward.
+> over a trusted server-to-server hop. All HTTP-API presets support an **optional**
+> bearer guard on data routes via the standard `DATA_API_TOKEN` env var: when set, the
+> frontend forwards it through `restRepository`'s `headers`
+> (`{ Authorization: 'Bearer <DATA_API_TOKEN>' }`) and the backend rejects requests
+> without it; when unset, the data routes are open and **MUST NOT** be publicly exposed
+> (keep them on the trusted server-to-server hop).
+
+> **Per-preset exception (validation status):** the `fastapi-sqlalchemy-jwt` preset
+> returns `422` (not `400`) on validation failure — this is FastAPI/Pydantic's native
+> behaviour and an accepted exception to the documented `400`.
 
 ---
 

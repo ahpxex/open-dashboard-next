@@ -255,4 +255,57 @@ describe("products data API (CONTRACT §1 + §4)", () => {
     );
     expect(res.status).toBe(400);
   });
+
+  test("§4.4 patch with no updatable fields -> 400", async () => {
+    const created = await createProduct({ name: "Untouched" });
+    const res = await req(`/products/${created.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(400);
+  });
+
+  test("search escapes LIKE wildcards (% / _ are literal)", async () => {
+    const tag = `Wild${Date.now()}`;
+    // A literal '%' in the name; a control row that would match if '%' were a wildcard.
+    await createProduct({ name: `${tag}-50%off`, category: tag });
+    await createProduct({ name: `${tag}-plain`, category: tag });
+
+    // q="50%off" must match only the literal-'%' row, not act as a wildcard.
+    const res = await req(`/products?q=${encodeURIComponent("50%off")}`);
+    expect(res.status).toBe(200);
+    const rows = (await res.json()) as Product[];
+    expect(rows.length).toBe(1);
+    expect(rows[0]?.name).toBe(`${tag}-50%off`);
+  });
+});
+
+// The bearer guard reads DATA_API_TOKEN at module-load time (env.ts centralises
+// env resolution), so the faithful way to prove the gated posture — without
+// disturbing the tests above, which run with no token set — is a fresh child
+// process whose env carries the token from the start. The fixture boots the real
+// app and runs both requests (no-bearer => 401, correct-bearer => 200), printing
+// OK / FAIL and mirroring it in the exit code.
+describe("data API bearer guard (CONTRACT §1, DATA_API_TOKEN set)", () => {
+  test("no bearer -> 401; correct bearer -> succeeds (in a token-gated process)", async () => {
+    const proc = Bun.spawnSync({
+      cmd: ["bun", "run", `${import.meta.dir}/data-token-guard.fixture.ts`],
+      env: {
+        ...process.env,
+        DATA_API_TOKEN: "test-data-api-token",
+        SQLITE_PATH: "./test.db",
+        DATABASE_URL: "",
+      },
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const stdout = proc.stdout.toString().trim();
+    if (!stdout.endsWith("OK")) {
+      throw new Error(
+        `token-guard fixture failed (exit ${proc.exitCode}):\n${stdout}\n${proc.stderr.toString()}`,
+      );
+    }
+    expect(proc.exitCode).toBe(0);
+  });
 });

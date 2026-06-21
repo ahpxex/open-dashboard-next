@@ -11,13 +11,20 @@
  *                                             follows the Set-Cookie session token
  *   GET  /api/auth/session                 -> { user: { id, name, email } }
  */
-import { describe, expect, test } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 
 process.env.DATABASE_URL = "";
 process.env.SQLITE_PATH = ":memory:";
 process.env.NODE_ENV = "test";
 process.env.AUTH_SECRET ||= "test-secret-not-for-production";
 process.env.FRONTEND_ORIGIN = "http://localhost:3000";
+// The contract suite runs with the data-API guard OFF (zero-config). The guard
+// reads DATA_API_TOKEN live per-request, so pin it empty before these tests run
+// — deterministic regardless of test-file ordering or a token set by another
+// file sharing this `bun test` process.
+beforeAll(() => {
+  process.env.DATA_API_TOKEN = "";
+});
 
 // Imported lazily after env is set so the db client picks SQLite :memory:.
 const { app } = await import("../src/app");

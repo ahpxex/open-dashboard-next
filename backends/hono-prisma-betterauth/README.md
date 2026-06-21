@@ -20,11 +20,13 @@ adapter pointed here — **no page, query, table, or form in the frontend change
 
 Mirrors the frontend's zero-config `bun dev` (CONTRACT §3):
 
-- **No `DATABASE_URL`** → **SQLite** via Prisma (a local `dev.db` file, or `:memory:`).
+- **No `DATABASE_URL`** → **SQLite** via Prisma (a local `dev.db` file).
   Tables are created automatically on boot — the `predev`/`prestart` scripts run
   `prisma db push` against `prisma/schema.prisma` (provider `sqlite`) **before** the server
   starts, so there is **no manual migrate step**. A dev account (`dev@example.com` /
-  `password`) and a few sample products are seeded on first run.
+  `password`) and a few sample products are seeded on first run. (`SQLITE_PATH` must be a
+  real file — `prisma db push` runs in a separate process from the server, so an in-memory
+  DB would not survive; for an ephemeral DB use a throwaway file you delete afterwards.)
 - **`DATABASE_URL` set** → **Postgres** (the production path). `scripts/prisma.ts` swaps in
   the byte-identical `prisma/schema.postgres.prisma` (provider `postgresql`) for
   `generate` / `db push`; manage with `prisma migrate` in a real deployment.
@@ -71,10 +73,11 @@ change; delete → get → 404; plus 400/404 error paths and the sort-whitelist 
 | Var | Default | Meaning |
 | --- | --- | --- |
 | `DATABASE_URL` | _(unset)_ | Postgres connection string. Unset → SQLite (zero-config); set → Postgres + the Postgres schema. |
-| `SQLITE_PATH` | `./dev.db` | SQLite file when `DATABASE_URL` is unset. Use `:memory:` for ephemeral. |
+| `SQLITE_PATH` | `./dev.db` | SQLite **file** when `DATABASE_URL` is unset. Must be a real file (not `:memory:`); for ephemeral use a throwaway file you delete. |
 | `BETTER_AUTH_SECRET` | dev fallback (non-prod only) | Session-signing secret. **Required in production** (fails closed). |
 | `BETTER_AUTH_URL` | _(unset)_ | The origin this service is reached at (better-auth `baseURL`). Set in prod. |
 | `FRONTEND_ORIGIN` | `http://localhost:3000` | Dashboard origin — trusted for CORS + better-auth CSRF (`trustedOrigins`). |
+| `DATA_API_TOKEN` | _(unset)_ | Optional bearer token guarding the **data** routes (`/products` only). Unset → open (dev). Set → every `/products` request needs `Authorization: Bearer <token>`. See **Securing the data API**. |
 | `PORT` | `8788` | HTTP port (8788 so it does not clash with the Drizzle preset's 8787). |
 
 ## Endpoints
@@ -92,7 +95,35 @@ change; delete → get → 404; plus 400/404 error paths and the sort-whitelist 
 Sortable whitelist: `name` `category` `price` `stock` `createdAt` (default `createdAt`
 desc). Searchable (`q`, case-insensitive OR): `name` `sku` `category`. Filterable (exact):
 `status` ∈ `available` `out_of_stock` `discontinued`. Raw user input is never used as a
-sort/filter column.
+sort/filter column. `_limit` is capped at **100**.
+
+## Securing the data API
+
+> **The `/products` data routes are unauthenticated by default.** They trust their
+> network: anyone who can reach this service's port can read and write products. This is
+> fine for local dev and for a private network where only the dashboard's server-side
+> code can reach the service (the default deployment — CONTRACT §1 has the frontend call
+> the data API over a trusted server-to-server hop, no auth header). **It is not safe to
+> expose the port publicly as-is.**
+
+For production, set **`DATA_API_TOKEN`** (a strong random value, e.g.
+`openssl rand -base64 32`). When it is set, every `/products` request must carry
+`Authorization: Bearer <DATA_API_TOKEN>`; a missing or wrong token gets `401`
+`{ "error": "Unauthorized" }`. The auth routes (`/api/auth/*`) are **not** gated by this —
+they have their own auth.
+
+Have the dashboard frontend forward the token from its server-side `restRepository` binding:
+
+```ts
+const repo = restRepository<Product, ProductInput, Product>({
+  baseUrl: process.env.PRODUCTS_API_URL!,
+  path: "/products",
+  map: (raw) => raw,
+  headers: { Authorization: `Bearer ${process.env.DATA_API_TOKEN!}` },
+});
+```
+
+The token lives only in server-side env on both sides — it never reaches the browser.
 
 ## Frontend wiring
 

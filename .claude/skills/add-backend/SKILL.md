@@ -9,6 +9,10 @@ The app is **backend-agnostic by design**: it reaches data and auth only through
 two seams, so adding a resource, swapping one resource's data source, or
 re-pointing the whole app at a different backend are all **localized** operations.
 
+**Routing rule:** use `add-backend` whenever a screen needs its own **data** (a new
+entity/table, or a different backend); use `add-component` when composing UI on top
+of data that already exists.
+
 | Concern | Seam | Default preset | Swap point |
 | --- | --- | --- | --- |
 | **Business data** (resources) | `Repository<T, TInput>` (`@/infra/data/repository`) | Postgres via `drizzleRepository`; in-memory when no DB | each resource's `server.ts` binding |

@@ -66,6 +66,7 @@ delete → get → 404; plus 400/404 error paths and the sort-whitelist fallback
 | `BETTER_AUTH_SECRET` | dev fallback (non-prod only) | Session-signing secret. **Required in production** (fails closed). |
 | `BETTER_AUTH_URL` | _(unset)_ | The origin this service is reached at (better-auth `baseURL`). Set in prod. |
 | `FRONTEND_ORIGIN` | `http://localhost:3000` | Dashboard origin — trusted for CORS + better-auth CSRF (`trustedOrigins`). |
+| `DATA_API_TOKEN` | _(unset)_ | Optional bearer token guarding the `/products` data routes. Unset → open (trusted-network posture). Set → every `/products` request must send `Authorization: Bearer <token>`. See [Securing the data API](#securing-the-data-api). |
 | `PORT` | `8787` | HTTP port. |
 
 ## Endpoints
@@ -83,6 +84,33 @@ delete → get → 404; plus 400/404 error paths and the sort-whitelist fallback
 Sortable whitelist: `name` `category` `price` `stock` `createdAt` (default `createdAt`
 desc). Searchable (`q`, case-insensitive OR): `name` `sku` `category`. Filterable
 (exact): `status` ∈ `available` `out_of_stock` `discontinued`.
+
+## Securing the data API
+
+> **The data API trusts its network when `DATA_API_TOKEN` is unset.** With no token,
+> *anyone who can reach this port can read and write `/products`* — the preset assumes
+> the frontend reaches it over a private server-to-server hop (CONTRACT §1). That is fine
+> for local dev, but **not** for an internet-exposed deployment.
+
+**In production, set `DATA_API_TOKEN`** (e.g. `openssl rand -base64 32`) and have the
+dashboard forward it. When set, every `/products` request must carry
+`Authorization: Bearer <DATA_API_TOKEN>`; a missing or mismatched token is rejected with
+`401 { "error": "Unauthorized" }`. The `/api/auth/*` routes have their own auth and are
+**never** gated by this token.
+
+The dashboard forwards the token via `restRepository`'s `headers`:
+
+```ts
+const repo = restRepository<Product, ProductInput, Product>({
+  baseUrl: process.env.PRODUCTS_API_URL!,
+  path: "/products",
+  map: (raw) => raw,
+  headers: { Authorization: `Bearer ${process.env.DATA_API_TOKEN!}` },
+});
+```
+
+The token lives only in server-side env (the fetch runs inside a server fn), so it never
+reaches the browser.
 
 ## Frontend wiring
 

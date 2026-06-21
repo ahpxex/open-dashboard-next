@@ -16,7 +16,7 @@ long-running service to run.
 | `supabase/migrations/20260101000000_init.sql` | Creates `public.products` (CONTRACT §0 fields, snake_case), the `updated_at` trigger, and **RLS enabled + forced** with `authenticated`-only CRUD policies (anon denied). |
 | `supabase/seed.sql` | A dozen demo products (mirrors the frontend's `demo-data.ts`), idempotent. |
 | `supabase/config.toml` | Minimal valid Supabase project config (API/db/auth ports, email+password, local seed). |
-| `.env.example` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. |
+| `.env.example` | Server vars (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) + the browser vars the auth-client needs (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). |
 
 ## Run it for real
 
@@ -49,11 +49,21 @@ Grab `SUPABASE_URL` + the anon / service-role keys from **Project Settings → A
 
 ## Env vars
 
+There are two sides, each needing its own URL + anon-key pair. The **server** side
+(server fns, the `AuthProvider`, the data adapter) reads the plain `SUPABASE_*` vars;
+the **browser** side (the supabase-js browser client in `auth-client.ts`) reads the
+`VITE_SUPABASE_*` vars — Vite only exposes `import.meta.env.VITE_*` to client code, so
+the browser client **requires** the VITE pair or it constructs with `undefined` and
+sign-in breaks. Both pairs point at the same project; keep their values in sync. The
+service-role key is server-only and has **no** VITE counterpart.
+
 | Var | Where used | Notes |
 | --- | --- | --- |
-| `SUPABASE_URL` | frontend (data + auth) | Project API URL. Local: `http://127.0.0.1:54321`. Hosted: `https://<ref>.supabase.co`. |
-| `SUPABASE_ANON_KEY` | frontend (browser + server) | Public key; safe in the browser. RLS gates it. |
-| `SUPABASE_SERVICE_ROLE_KEY` | frontend (**server only**) | Bypasses RLS. Never expose to the browser. Optional if you forward the user JWT to the anon client instead. |
+| `SUPABASE_URL` | server (data + auth) | Project API URL. Local: `http://127.0.0.1:54321`. Hosted: `https://<ref>.supabase.co`. |
+| `SUPABASE_ANON_KEY` | server (data + auth) | Public key. The **default data path** builds an anon client carrying the user's JWT so RLS applies. |
+| `SUPABASE_SERVICE_ROLE_KEY` | server (**admin only**) | Bypasses RLS. Never expose to the browser. Reserved for explicit admin ops, **not** the per-user data path. Optional. |
+| `VITE_SUPABASE_URL` | browser (auth-client) | Same value as `SUPABASE_URL`. Required by the browser client. |
+| `VITE_SUPABASE_ANON_KEY` | browser (auth-client) | Same value as `SUPABASE_ANON_KEY`. Required by the browser client. Safe to ship; RLS gates it. |
 
 ## Column mapping (snake_case ↔ camelCase)
 
@@ -102,17 +112,26 @@ dialect; it uses the supabase-js query builder:
 - **getOne** → `.select("*").eq("id", id).maybeSingle()`; `null` when no row (maps the
   frontend's `404 → null`).
 - **create** → `.insert(serialize(input)).select().single()`.
-- **update** → `.update(serialize(input)).eq("id", id).select().single()`.
-- **remove** → `.delete().eq("id", id)`.
+- **update** → `.update(serialize(input)).eq("id", id).select().maybeSingle()`; a `null`
+  result (no matching row, or one the user's RLS can't touch) **throws not-found** — a
+  write to a missing id must surface as 404, not silently succeed (mirrors
+  `restRepository`, whose PATCH on a missing item throws).
+- **remove** → `.delete().eq("id", id).select()`; an **empty** result means nothing
+  matched, which likewise **throws not-found** (a bare `.delete()` is a silent 0-row
+  no-op, which would mask a stale/forbidden id).
 
 `map(raw)` converts snake_case → camelCase (and `Number(raw.price)`); `serialize(input)`
 converts camelCase → snake_case (only `createdAt`/`updatedAt` need renaming, and those
 are server-owned so they're omitted from writes — the DB default + trigger set them).
 
-The server-side client is created with the **service-role key** on the trusted
-server-to-server hop (the fetch runs inside a server fn that already called
-`requireUser()`), **or** with the anon key plus the forwarded user JWT. Either way the
-key/JWT stays server-side.
+**The default data path exercises RLS.** The repository's client is built **per request**
+with the **anon key + the signed-in user's JWT** (forwarded from the request's Supabase
+auth cookie via `@supabase/ssr`'s `createServerClient`), so every PostgREST call runs as
+the `authenticated` role and the table's RLS policies are actually enforced. The
+**service-role key bypasses RLS** and is therefore reserved for **explicit admin
+operations** only (the example ships a lazily-built `adminClient()` for that) — using it
+on the per-user CRUD path would silently defeat the policies. Either way the key/JWT
+never leaves the server.
 
 ### Auth — Supabase `AuthProvider` + `auth-client`
 
@@ -131,29 +150,46 @@ the dashboard already uses, normalising to `AuthSession` = `{ user: { id, email,
   request `headers`, call `supabase.auth.getUser()`, and normalise:
   `{ user: { id, email, name: user.user_metadata.name ?? "" } }`, or `null` if no user.
   Use `getUser()` (verifies the JWT against Supabase) — not `getSession()` — for the
-  guard.
+  guard. **This is the real SSR refresh point:** the server client's `setAll` writes any
+  rotated session cookies back onto the outgoing response (via TanStack Start's ambient
+  `setCookie`), so when `getUser()` transparently refreshes an expired access token the
+  browser keeps a live session. (A no-op `setAll` would refresh the token and then throw
+  it away, leaving the next request with a stale cookie.)
 - **`AuthProvider.handler(request)`** — Supabase Auth runs on the Supabase origin, so
-  the frontend's `/api/auth/*` route is **not** a full auth host here. The browser
-  client talks to `${SUPABASE_URL}/auth/v1/*` directly; the cookie is written via the
-  `@supabase/ssr` cookie adapter on the frontend origin. The `handler` only needs to
-  service the SSR cookie/session refresh exchange (or return `404` for unused
-  sub-paths). Map the Supabase user → `{ user }` consistently with `getSession`.
+  the frontend's `/api/auth/*` route is **not** a full auth host: the browser client
+  signs in/out against `${SUPABASE_URL}/auth/v1/*` directly. The `handler`'s one job is
+  to **service the SSR cookie/session-refresh exchange** — it builds the same per-request
+  server client, calls `getUser()` (which refreshes and writes the rotated cookies via
+  `setAll`), and returns `204`, so the refreshed `Set-Cookie` headers ride back on the
+  response. It is not a 404 stub.
 
 `name` is carried in Supabase's `user_metadata.name` (set at sign-up via
 `options.data.name`); the frontend reads it back from `user_metadata`.
 
 ### Env the wiring needs
 
-`SUPABASE_URL`, `SUPABASE_ANON_KEY` (browser + server), `SUPABASE_SERVICE_ROLE_KEY`
-(server only). See `.env.example`.
+Server: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (the default RLS-respecting data path + the
+auth guard), `SUPABASE_SERVICE_ROLE_KEY` (admin-only, optional). Browser:
+`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (the auth-client). See `.env.example`.
 
 ## Verify
 
-Verified end-to-end against a **live local stack** (`supabase start && supabase db reset`):
-the shipped `frontend-wiring/supabase-repository.ts` driving real PostgREST does
-list/search/filter/sort/pagination/count + create→getOne→update→remove; anon `select` is
-RLS-denied while `authenticated` reads all 12 seed rows; and Supabase Auth
-`signUp`→`signInWithPassword`→`getUser` returns `user_metadata.name`. The SQL itself
-(migration idempotency, RLS forced, policies, trigger, check constraints) was also
-validated against a bare Postgres. Re-run with `supabase start && supabase db reset`, then
-exercise the wiring against the printed API URL + keys.
+The **SQL layer** is validated against a bare Postgres: migration idempotency, RLS
+enabled + forced, the `authenticated`-only CRUD policies (anon denied), the `updated_at`
+trigger, and the check constraints. The seed loads all 12 demo rows.
+
+The **frontend wiring** (`frontend-wiring/*`) ships as copy-ready files typechecked in
+isolation against the real `@supabase/*` types — this repo has no Supabase stack or test
+harness, so the wiring is **not** auto-verified here. To exercise it end-to-end, copy the
+files into a dashboard (per `frontend-wiring/README.md`), `supabase start && supabase db
+reset`, set the env, and check:
+
+- **data path runs under RLS** — the repository's anon-key + user-JWT client lists /
+  searches / filters / sorts / paginates and create→getOne→update→remove as the
+  `authenticated` role; an unauthenticated request (no JWT) is RLS-denied. `update` /
+  `remove` on a missing id throw not-found rather than silently succeeding.
+- **service-role stays admin-only** — `adminClient()` (RLS-bypassing) is not on the CRUD
+  path.
+- **auth** — `signUp`→`signInWithPassword`→`getUser` returns `user_metadata.name`; an
+  expired access token is refreshed by `getSession`/`handler` and the rotated cookies are
+  written back on the response.

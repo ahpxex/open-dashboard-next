@@ -49,6 +49,23 @@ export const authSecret: string = (() => {
 export const frontendOrigin =
   process.env.FRONTEND_ORIGIN?.trim() || "http://localhost:3000";
 
+/**
+ * Optional bearer token guarding the **data** routes (the `/products` API).
+ * CONTRACT §1 lets the frontend reach the data API over a trusted
+ * server-to-server hop with no auth header — so when this is unset the data
+ * routes stay open (zero-config dev keeps working). When set (non-empty),
+ * every `/products` request must carry `Authorization: Bearer <DATA_API_TOKEN>`
+ * or it is rejected with `401`. Auth routes (`/api/auth/*`) are never gated by
+ * this — they have their own auth. In production, set it and have the dashboard
+ * forward it (`restRepository` headers: `{ Authorization: 'Bearer <token>' }`).
+ *
+ * Read live from the environment (rather than frozen at import) so the value
+ * reflects the process config without coupling to module-load order.
+ */
+export function getDataApiToken(): string | undefined {
+  return process.env.DATA_API_TOKEN?.trim() || undefined;
+}
+
 /** better-auth `baseURL` — the origin this service is reached at. */
 export const authBaseUrl =
   process.env.BETTER_AUTH_URL?.trim() || undefined;

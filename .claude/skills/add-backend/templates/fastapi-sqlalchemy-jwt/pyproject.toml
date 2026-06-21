@@ -12,11 +12,13 @@ dependencies = [
     "fastapi==0.115.6",
     "uvicorn[standard]==0.34.0",
     "sqlalchemy>=2.0.36,<3",
+    "alembic>=1.14,<2",
     "pydantic[email]>=2.10.4,<3",
     "pydantic-settings>=2.7.0,<3",
     "pyjwt==2.10.1",
-    "passlib[bcrypt]==1.7.4",
-    "bcrypt==4.2.1",
+    # Argon2 password hashing via the maintained `pwdlib` (replaces the
+    # unmaintained passlib + bcrypt 4.x combo, which logged a spurious traceback).
+    "pwdlib[argon2]>=0.2.1,<1",
     "python-multipart==0.0.20",
 ]
 

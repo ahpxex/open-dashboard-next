@@ -4,8 +4,8 @@
  * The datasource URL is resolved in `src/lib/env.ts` (mirroring
  * `scripts/prisma.ts`, which runs `prisma db push` before boot), and passed
  * explicitly to the constructor so the runtime client and the CLI that created
- * the tables always point at the same database — including the test suite's
- * shared in-memory SQLite (`SQLITE_PATH=:memory:`).
+ * the tables always point at the same SQLite/Postgres database — including the
+ * test suite's `./test.db` file.
  *
  * Which physical tables exist (SQLite vs Postgres) is decided by which schema
  * `prisma db push` ran against; the generated client is structurally identical

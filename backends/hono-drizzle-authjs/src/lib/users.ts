@@ -10,6 +10,20 @@ import { db, schema } from "../db";
 
 const BCRYPT_ROUNDS = 10;
 
+/**
+ * bcrypt only hashes the first 72 *bytes* of a password and silently ignores the
+ * rest. Two distinct passwords sharing a 72-byte prefix would therefore collide,
+ * so we reject anything longer rather than hash a truncated value. The register
+ * route enforces the same cap up front (→ 400); this is the shared chokepoint.
+ */
+export const MAX_PASSWORD_BYTES = 72;
+
+function assertPasswordWithinBcryptLimit(password: string): void {
+  if (new TextEncoder().encode(password).length > MAX_PASSWORD_BYTES) {
+    throw new Error("PASSWORD_TOO_LONG");
+  }
+}
+
 export interface AppUser {
   id: string;
   name: string;
@@ -53,6 +67,7 @@ export async function createUser(input: {
   password: string;
 }): Promise<AppUser> {
   const email = normalizeEmail(input.email);
+  assertPasswordWithinBcryptLimit(input.password);
   if (await emailExists(email)) {
     throw new Error("EMAIL_EXISTS");
   }

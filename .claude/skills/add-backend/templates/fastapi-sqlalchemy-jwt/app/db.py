@@ -1,7 +1,10 @@
 """SQLAlchemy 2.0 engine, session, and declarative base.
 
 Tables are created automatically on startup (``init_db``) so the zero-config
-SQLite path needs no manual migration step (CONTRACT §3).
+SQLite dev path needs no manual migration step (CONTRACT §3). The Postgres
+production path uses Alembic instead — run ``alembic upgrade head`` (see the
+README "Migrations" section); ``init_db`` is the dev convenience, not the
+production schema source.
 """
 
 from __future__ import annotations

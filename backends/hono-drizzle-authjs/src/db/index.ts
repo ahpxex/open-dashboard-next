@@ -14,15 +14,38 @@
  * and a compatible logical shape, `products.ts` / `auth.ts` / `register.ts` are
  * written once against the shared field names.
  */
+import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { hasDatabase } from "../lib/env";
+import type { schema as sqliteSchemaTables } from "./schema.sqlite";
 
 type Dialect = "sqlite" | "pg";
 
-// These are assigned exactly once below, then frozen by module evaluation.
-// biome-ignore lint: intentional late init guarded by the branch below.
-let dbInstance: any;
-// biome-ignore lint: see above.
-let schemaInstance: any;
+/**
+ * The drizzle client, given a single concrete static type so the data layer is
+ * fully typechecked (replacing the former `any`, which erased Drizzle's
+ * type-safety and `noUncheckedIndexedAccess` coverage).
+ *
+ * At runtime `db` is either the bun-sqlite client (zero-config) or the
+ * node-postgres client (when `DATABASE_URL` is set), picked by the branch below.
+ * The two are written against and queried through the **same** table schema
+ * (identical column names; the dialect tables differ only in underlying SQL
+ * types), so a single concrete type — the SQLite client over the shared
+ * schema — describes every call site precisely. The Postgres instance is
+ * structurally equivalent for the query-builder surface this preset uses
+ * (`select`/`insert`/`update`/`delete` + `.where`/`.orderBy`/`.limit`/`.offset`),
+ * so it is adapted to this type at the one assignment seam below. Picking one
+ * concrete type (rather than a union of the two `drizzle()` return types) is what
+ * keeps the builder methods callable: TypeScript can't reconcile the pg and
+ * sqlite overload sets into a single callable union.
+ */
+export type DbClient = BunSQLiteDatabase<typeof sqliteSchemaTables>;
+
+/** The dialect-matched table set (`products` / `users`), keyed identically
+ * across dialects. */
+export type Schema = typeof sqliteSchemaTables;
+
+let dbInstance: DbClient;
+let schemaInstance: Schema;
 let dialectValue: Dialect;
 
 if (hasDatabase) {
@@ -32,8 +55,12 @@ if (hasDatabase) {
   const { databaseUrl } = await import("../lib/env");
 
   const pool = new Pool({ connectionString: databaseUrl });
-  dbInstance = drizzle(pool, { schema: pgSchema.schema });
-  schemaInstance = pgSchema;
+  // The pg client is queried through the same shared schema and builder surface
+  // as the sqlite one; adapt it to the canonical DbClient at this single seam.
+  dbInstance = drizzle(pool, {
+    schema: pgSchema.schema,
+  }) as unknown as DbClient;
+  schemaInstance = pgSchema.schema as unknown as Schema;
   dialectValue = "pg";
   await ensurePgTables(pool);
 } else {
@@ -47,12 +74,12 @@ if (hasDatabase) {
   sqlite.exec("PRAGMA foreign_keys = ON;");
   ensureSqliteTables(sqlite);
   dbInstance = drizzle(sqlite, { schema: sqliteSchema.schema });
-  schemaInstance = sqliteSchema;
+  schemaInstance = sqliteSchema.schema;
   dialectValue = "sqlite";
 }
 
-export const db = dbInstance;
-export const schema = schemaInstance;
+export const db: DbClient = dbInstance;
+export const schema: Schema = schemaInstance;
 export const dialect: Dialect = dialectValue;
 
 function ensureSqliteTables(sqlite: import("bun:sqlite").Database): void {

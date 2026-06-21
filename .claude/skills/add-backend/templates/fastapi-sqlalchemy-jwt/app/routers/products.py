@@ -4,6 +4,10 @@ GET /products supports ``_page`` / ``_limit`` / ``_sort`` / ``_order`` / ``q`` /
 ``status`` and sets ``X-Total-Count`` (the filtered, not paginated, count). Sort
 and filter honor whitelists — raw user input is never used to sort/filter
 (CONTRACT §0). The default sort is ``createdAt`` descending.
+
+When ``DATA_API_TOKEN`` is set, every route here requires
+``Authorization: Bearer <DATA_API_TOKEN>`` via the router-level
+``require_data_token`` dependency (CONTRACT §1; unset → open for zero-config dev).
 """
 
 from __future__ import annotations
@@ -12,11 +16,28 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import asc, desc, func, or_, select
 from sqlalchemy.orm import Session
 
+from app.auth import require_data_token
 from app.db import get_session
 from app.models import Product
 from app.schemas import ProductInput, ProductOut, ProductPatch
 
-router = APIRouter(prefix="/products", tags=["products"])
+# The optional data-API bearer guard applies to ALL product routes (collection +
+# item). It is a no-op when DATA_API_TOKEN is unset.
+router = APIRouter(
+    prefix="/products", tags=["products"], dependencies=[Depends(require_data_token)]
+)
+
+
+def _escape_like(term: str) -> str:
+    r"""Escape LIKE wildcards so a user's ``q`` is matched literally.
+
+    ``%`` and ``_`` are SQL LIKE metacharacters; without escaping, a search for
+    ``50%`` or ``a_b`` would match far more than intended. We escape them (and the
+    escape char itself) and pair the query with ``ESCAPE '\\'`` at the call site.
+    """
+    return (
+        term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    )
 
 # Whitelists mirror the frontend; never sort/filter by raw input (CONTRACT §0).
 SEARCHABLE = (Product.name, Product.sku, Product.category)
@@ -44,10 +65,13 @@ def list_products(
 ) -> list[Product]:
     stmt = select(Product)
 
-    # Search (case-insensitive OR across the searchable whitelist).
+    # Search (case-insensitive OR across the searchable whitelist). LIKE wildcards
+    # in the user's term are escaped so `%`/`_` match literally (CONTRACT §0).
     if q:
-        term = f"%{q.lower()}%"
-        stmt = stmt.where(or_(*[func.lower(col).like(term) for col in SEARCHABLE]))
+        term = f"%{_escape_like(q.lower())}%"
+        stmt = stmt.where(
+            or_(*[func.lower(col).like(term, escape="\\") for col in SEARCHABLE])
+        )
 
     # Exact-match filter on the whitelisted `status` column. A value outside the
     # enum is still applied as an exact match (it simply yields no rows), which is

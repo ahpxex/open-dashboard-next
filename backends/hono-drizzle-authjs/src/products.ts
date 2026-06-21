@@ -25,6 +25,18 @@ import {
 
 const products = schema.products;
 
+/** Hard ceiling on `_limit` so a single request can't ask for an unbounded
+ * page (a DoS vector). Mirrors the frontend's page-size options. */
+const MAX_LIMIT = 100;
+
+/**
+ * Escape the LIKE metacharacters (`%`, `_`, and the escape char itself) in a
+ * user-supplied search term so a `q` of e.g. `100%` matches literally instead of
+ * being treated as a wildcard. Paired with `ESCAPE '\'` in the predicate. */
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
+}
+
 /** Normalise a raw DB row to the contract's Product shape. */
 function toProduct(row: Record<string, unknown>): Product {
   return {
@@ -54,15 +66,21 @@ productsRoutes.get("/", async (c) => {
   const page = Math.max(1, Number(url.searchParams.get("_page")) || 1);
   const limitRaw = Number(url.searchParams.get("_limit"));
   const limit =
-    Number.isFinite(limitRaw) && limitRaw > 0 ? Math.floor(limitRaw) : 10;
+    Number.isFinite(limitRaw) && limitRaw > 0
+      ? Math.min(Math.floor(limitRaw), MAX_LIMIT)
+      : 10;
   const offset = (page - 1) * limit;
 
   const conditions = [];
 
   if (q) {
-    const needle = `%${q.toLowerCase()}%`;
+    const needle = `%${escapeLike(q.toLowerCase())}%`;
     conditions.push(
-      or(...SEARCHABLE.map((col) => like(sql`lower(${products[col]})`, needle))),
+      or(
+        ...SEARCHABLE.map((col) =>
+          like(sql`lower(${products[col]})`, sql`${needle} ESCAPE '\\'`),
+        ),
+      ),
     );
   }
 
@@ -160,7 +178,11 @@ productsRoutes.patch("/:id", async (c) => {
     .from(products)
     .where(eq(products.id, id))
     .limit(1);
-  return c.json(toProduct(rows[0]));
+  const updated = rows[0];
+  // Guard against the row vanishing between the update and the re-read (e.g. a
+  // concurrent delete) — narrows away the `T | undefined` from indexed access.
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json(toProduct(updated));
 });
 
 // DELETE /products/:id — delete.

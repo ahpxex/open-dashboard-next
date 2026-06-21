@@ -12,6 +12,7 @@ import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { db, schema } from "./db";
+import { getDataApiToken } from "./lib/env";
 import {
   type Product,
   type ProductStatus,
@@ -24,6 +25,18 @@ import {
 } from "./lib/products-schema";
 
 const products = schema.products;
+
+/** Largest page size the list endpoint will honor (matches the frontend posture). */
+const MAX_LIMIT = 100;
+
+/**
+ * Escape LIKE wildcards (`%`, `_`) and the escape char itself in a raw search
+ * term so user-typed `%`/`_` match literally instead of acting as wildcards.
+ * Pairs with the `ESCAPE '\'` clause on the generated LIKE.
+ */
+function escapeLike(term: string): string {
+  return term.replace(/[\\%_]/g, "\\$&");
+}
 
 /** Normalise a raw DB row to the contract's Product shape. */
 function toProduct(row: Record<string, unknown>): Product {
@@ -43,6 +56,19 @@ function toProduct(row: Record<string, unknown>): Product {
 
 export const productsRoutes = new Hono();
 
+// Optional bearer guard (CONTRACT §1): when DATA_API_TOKEN is set, every data
+// route requires `Authorization: Bearer <DATA_API_TOKEN>`. Unset => open (the
+// trusted server-to-server posture; zero-config dev keeps working).
+productsRoutes.use("*", async (c, next) => {
+  const token = getDataApiToken();
+  if (!token) return next();
+  const header = c.req.header("authorization") ?? "";
+  if (header !== `Bearer ${token}`) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  return next();
+});
+
 // GET /products — filtered + sorted + paginated list with X-Total-Count.
 productsRoutes.get("/", async (c) => {
   const url = new URL(c.req.url);
@@ -54,17 +80,20 @@ productsRoutes.get("/", async (c) => {
   const page = Math.max(1, Number(url.searchParams.get("_page")) || 1);
   const limitRaw = Number(url.searchParams.get("_limit"));
   const limit =
-    Number.isFinite(limitRaw) && limitRaw > 0 ? Math.floor(limitRaw) : 10;
+    Number.isFinite(limitRaw) && limitRaw > 0
+      ? Math.min(MAX_LIMIT, Math.floor(limitRaw))
+      : 10;
   const offset = (page - 1) * limit;
 
   const conditions = [];
 
   if (q) {
-    const needle = `%${q.toLowerCase()}%`;
+    // Escape LIKE wildcards so a user-typed `%`/`_` matches literally.
+    const needle = `%${escapeLike(q.toLowerCase())}%`;
     conditions.push(
       or(
         ...SEARCHABLE.map((col) =>
-          like(sql`lower(${products[col]})`, needle),
+          like(sql`lower(${products[col]})`, sql`${needle} ESCAPE '\\'`),
         ),
       ),
     );
@@ -146,6 +175,15 @@ productsRoutes.patch("/:id", async (c) => {
   if (!parsed.success) {
     return c.json(
       { error: "Validation failed", details: parsed.error.flatten() },
+      400,
+    );
+  }
+
+  // Reject an effectively-empty patch (no updatable fields) rather than
+  // silently bumping updatedAt with a no-op write.
+  if (Object.keys(parsed.data).length === 0) {
+    return c.json(
+      { error: "Validation failed", details: "No updatable fields provided" },
       400,
     );
   }

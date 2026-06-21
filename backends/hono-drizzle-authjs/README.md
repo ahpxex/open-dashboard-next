@@ -70,9 +70,33 @@ plus 400/404/409 error paths and the sort-whitelist fallback.
 | `DATABASE_URL` | _(unset)_ | Postgres connection string. Unset → SQLite (zero-config). |
 | `SQLITE_PATH` | `./data.db` | SQLite file when `DATABASE_URL` is unset. Use `:memory:` for ephemeral. |
 | `AUTH_SECRET` | dev fallback (non-prod only) | Auth.js session-signing secret. **Required in production** (fails closed). |
-| `AUTH_URL` | _(unset)_ | The origin this service is reached at, incl. the `/api/auth` base path. Optional in dev (derived from the request); set behind a proxy in prod. |
+| `AUTH_URL` | _(unset)_ | The **origin** this service is reached at (read by `@hono/auth-js`). The `/api/auth` base path is fixed in code — don't append it. Optional in dev (derived from the request); set behind a proxy in prod. |
+| `DATA_API_TOKEN` | _(unset)_ | Optional bearer token guarding the `/products` data routes. Unset → open (zero-config). Set → every `/products` request needs `Authorization: Bearer <token>`. See **Securing the data API**. |
 | `FRONTEND_ORIGIN` | `http://localhost:3000` | Dashboard origin — trusted for CORS. |
 | `PORT` | `8789` | HTTP port. |
+
+## Securing the data API
+
+**The `/products` data routes trust their network when `DATA_API_TOKEN` is unset** —
+anyone who can reach the port can read and write products. That's deliberate for
+zero-config dev (and matches the default wiring, where the frontend calls this service
+over a trusted server-to-server hop inside a server fn that already ran `requireUser()`).
+
+**In production, set `DATA_API_TOKEN`** to a long random secret. When it's set, every
+`/products` request must carry `Authorization: Bearer <DATA_API_TOKEN>`; a missing or
+mismatched token returns `401 { "error": "Unauthorized" }`. The `/api/auth/*` routes are
+**not** gated by this — they run their own Auth.js CSRF + cookie flow.
+
+Have the dashboard forward the token from its `restRepository` binding:
+
+```ts
+const repo = restRepository<Product, ProductInput, Product>({
+  baseUrl: process.env.PRODUCTS_API_URL!,
+  path: "/products",
+  headers: { Authorization: `Bearer ${process.env.DATA_API_TOKEN!}` },
+  map: (raw) => raw,
+});
+```
 
 ## Endpoints
 

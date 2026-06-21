@@ -37,9 +37,22 @@ class Settings(BaseSettings):
     # Comma-separated list of frontend origins allowed by CORS. "*" allows all.
     cors_origins: str = "http://localhost:3000"
 
+    # Optional bearer token guarding the DATA routes (the /products API). Unset →
+    # the data API trusts its network and stays open (zero-config dev). Set →
+    # every /products request must carry `Authorization: Bearer <DATA_API_TOKEN>`
+    # (CONTRACT §1; auth routes are never gated by this — they have their own auth).
+    data_api_token: str | None = None
+
     @property
     def is_production(self) -> bool:
         return self.app_env.lower() == "production"
+
+    @property
+    def data_token(self) -> str | None:
+        """The effective data-API bearer token, or ``None`` when unset/blank
+        (so an empty env value leaves the data routes open, matching dev)."""
+        token = (self.data_api_token or "").strip()
+        return token or None
 
     @property
     def sqlalchemy_url(self) -> str:

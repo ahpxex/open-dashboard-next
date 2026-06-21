@@ -9,8 +9,10 @@
  *   DELETE /products/:id     delete (204, 404 when absent)
  */
 import { randomUUID } from "node:crypto";
+import { Prisma } from "@prisma/client";
 import { Hono } from "hono";
-import { dialect, prisma } from "./db";
+import { prisma } from "./db";
+import { dataApiToken } from "./lib/env";
 import {
   type Product,
   isValidStatus,
@@ -19,47 +21,75 @@ import {
   resolveOrder,
   resolveSort,
   SEARCHABLE,
+  type SortField,
 } from "./lib/products-schema";
 
-/** Normalise a Prisma row to the contract's Product shape (ISO-8601 dates). */
-function toProduct(row: {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  price: number;
-  stock: number;
-  status: string;
-  description: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}): Product {
-  return {
-    id: row.id,
-    name: row.name,
-    sku: row.sku,
-    category: row.category,
-    price: Number(row.price),
-    stock: Number(row.stock),
-    status: row.status as Product["status"],
-    description: row.description ?? "",
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
-  };
+/** Largest page size the list endpoint will honor (matches the frontend posture). */
+const MAX_LIMIT = 100;
+
+/**
+ * Escape LIKE wildcards (`%`, `_`) and the backslash escape char itself in a raw
+ * search term so user-typed `%`/`_` match literally instead of acting as
+ * wildcards. Pairs with the explicit `ESCAPE '\'` on the generated LIKE.
+ *
+ * NOTE: we build the search `LIKE … ESCAPE '\'` by hand (raw SQL) rather than via
+ * Prisma's `contains`, because the SQLite connector emits a bare `LIKE` with no
+ * `ESCAPE` clause — so backslash-escaping a `contains` value would match a
+ * literal backslash there. The raw `ESCAPE '\'` form behaves identically on
+ * SQLite and Postgres, matching the Drizzle sibling.
+ */
+function escapeLike(term: string): string {
+  return term.replace(/[\\%_]/g, "\\$&");
+}
+
+/** Physical column for a whitelisted sort field (quoted, safe to interpolate). */
+function sortColumn(field: SortField): Prisma.Sql {
+  // `field` is already constrained to the SORTABLE whitelist by resolveSort.
+  return Prisma.raw(`"${field}"`);
 }
 
 /**
- * Case-insensitive `contains` clause for a column. Postgres needs an explicit
- * `mode: "insensitive"`; SQLite's `LIKE` is already case-insensitive for ASCII,
- * and passing `mode` to it is unsupported — so we branch on the dialect.
+ * Coerce a Prisma date column to an ISO-8601 string. Typed Prisma model rows
+ * give a `Date`; raw (`$queryRaw`) rows give a `Date` on Postgres but a string on
+ * SQLite — normalise both to the contract's ISO string.
  */
-function containsClause(value: string) {
-  return dialect === "pg"
-    ? { contains: value, mode: "insensitive" as const }
-    : { contains: value };
+function toIso(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
+
+/**
+ * Normalise a product row (typed Prisma model OR raw `$queryRaw`) to the
+ * contract's Product shape (ISO-8601 dates).
+ */
+function toProduct(row: Record<string, unknown>): Product {
+  return {
+    id: String(row.id),
+    name: String(row.name),
+    sku: String(row.sku),
+    category: String(row.category),
+    price: Number(row.price),
+    stock: Number(row.stock),
+    status: row.status as Product["status"],
+    description: row.description == null ? "" : String(row.description),
+    createdAt: toIso(row.createdAt as Date | string),
+    updatedAt: toIso(row.updatedAt as Date | string),
+  };
 }
 
 export const productsRoutes = new Hono();
+
+// Optional bearer guard (CONTRACT §1): when DATA_API_TOKEN is set, every data
+// route requires `Authorization: Bearer <DATA_API_TOKEN>`. Unset => open (the
+// trusted server-to-server posture; zero-config dev keeps working).
+productsRoutes.use("*", async (c, next) => {
+  if (!dataApiToken) return next();
+  const header = c.req.header("authorization") ?? "";
+  const expected = `Bearer ${dataApiToken}`;
+  if (header !== expected) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+  return next();
+});
 
 // GET /products — filtered + sorted + paginated list with X-Total-Count.
 productsRoutes.get("/", async (c) => {
@@ -72,35 +102,53 @@ productsRoutes.get("/", async (c) => {
   const page = Math.max(1, Number(url.searchParams.get("_page")) || 1);
   const limitRaw = Number(url.searchParams.get("_limit"));
   const limit =
-    Number.isFinite(limitRaw) && limitRaw > 0 ? Math.floor(limitRaw) : 10;
+    Number.isFinite(limitRaw) && limitRaw > 0
+      ? Math.min(Math.floor(limitRaw), MAX_LIMIT)
+      : 10;
   const skip = (page - 1) * limit;
 
-  // biome-ignore lint/suspicious/noExplicitAny: Prisma's generated where-input type isn't imported here.
-  const where: Record<string, any> = {};
+  // Build the WHERE as composable, fully-parameterised SQL fragments so the
+  // search term + status value are never string-interpolated. The only literals
+  // we interpolate are the whitelisted sort column/order and the numeric
+  // limit/offset. This raw form lets us attach an explicit `ESCAPE '\'` to the
+  // search LIKE (Prisma's own `contains` omits it on SQLite), so user-typed
+  // `%`/`_` match literally — identical behavior on SQLite and Postgres.
+  const conditions: Prisma.Sql[] = [];
 
   if (q) {
-    where.OR = SEARCHABLE.map((col) => ({ [col]: containsClause(q) }));
+    const needle = `%${escapeLike(q.toLowerCase())}%`;
+    const ors = SEARCHABLE.map(
+      // `\\` in source => a single literal backslash in the SQL `ESCAPE '\'`.
+      (col) => Prisma.sql`lower("${Prisma.raw(col)}") LIKE ${needle} ESCAPE '\\'`,
+    );
+    conditions.push(Prisma.sql`(${Prisma.join(ors, " OR ")})`);
   }
 
   // Exact-match status filter — only honored when it's a known enum value;
   // unknown filter values are ignored (return everything) per the contract's
   // "unknown filter keys are ignored" + whitelist posture.
   if (statusRaw && isValidStatus(statusRaw)) {
-    where.status = statusRaw;
+    conditions.push(Prisma.sql`"status" = ${statusRaw}`);
   }
 
-  const [rows, total] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy: { [sortField]: order },
-      take: limit,
-      skip,
-    }),
-    prisma.product.count({ where }),
-  ]);
+  const whereSql = conditions.length
+    ? Prisma.sql`WHERE ${Prisma.join(conditions, " AND ")}`
+    : Prisma.empty;
+  const orderSql = Prisma.raw(order === "asc" ? "ASC" : "DESC");
 
+  const [rows, countRows] = await Promise.all([
+    prisma.$queryRaw<Record<string, unknown>[]>(
+      Prisma.sql`SELECT * FROM "products" ${whereSql} ORDER BY ${sortColumn(sortField)} ${orderSql} LIMIT ${limit} OFFSET ${skip}`,
+    ),
+    prisma.$queryRaw<{ count: bigint | number }[]>(
+      Prisma.sql`SELECT COUNT(*) AS count FROM "products" ${whereSql}`,
+    ),
+  ]);
+  const total = Number(countRows[0]?.count ?? 0);
+
+  // X-Total-Count is exposed to the browser by the cors() middleware
+  // (exposeHeaders) in src/app.ts — no need to set the header here.
   c.header("X-Total-Count", String(total));
-  c.header("Access-Control-Expose-Headers", "X-Total-Count");
   return c.json(rows.map(toProduct));
 });
 
@@ -143,6 +191,12 @@ productsRoutes.patch("/:id", async (c) => {
       { error: "Validation failed", details: parsed.error.flatten() },
       400,
     );
+  }
+
+  // Reject an effectively-empty patch (no updatable fields) — a no-op write that
+  // would still bump `updatedAt` is almost always a client bug, not intent.
+  if (Object.keys(parsed.data).length === 0) {
+    return c.json({ error: "No updatable fields provided" }, 400);
   }
 
   const existing = await prisma.product.findUnique({ where: { id } });

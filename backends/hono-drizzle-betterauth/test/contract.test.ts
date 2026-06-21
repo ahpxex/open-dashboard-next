@@ -242,4 +242,78 @@ describe("products data API (CONTRACT §1 + §4)", () => {
     );
     expect(res.status).toBe(400);
   });
+
+  test("search treats LIKE wildcards (%, _) as literal characters", async () => {
+    const stamp = Date.now();
+    // A name containing a literal `%`, and a sibling that a raw `%` wildcard
+    // would also match if the term weren't escaped.
+    const withPercent = `Lit%Match${stamp}`;
+    const sibling = `LitXMatch${stamp}`;
+    await createProduct({ name: withPercent, category: `Esc${stamp}` });
+    await createProduct({ name: sibling, category: `Esc${stamp}` });
+
+    // Searching for the literal `Lit%Match…` must return only the `%` row, not
+    // the sibling (which it would, if `%` were a wildcard meaning "any chars").
+    const res = await req(`/products?q=${encodeURIComponent(withPercent)}`);
+    expect(res.status).toBe(200);
+    const rows = (await res.json()) as Product[];
+    expect(rows.length).toBe(1);
+    expect(rows[0]?.name).toBe(withPercent);
+
+    // A literal `_` likewise matches only itself, not "any single char".
+    const withUnderscore = `Und_score${stamp}`;
+    const underscoreSibling = `UndXscore${stamp}`;
+    await createProduct({ name: withUnderscore, category: `Esc${stamp}` });
+    await createProduct({ name: underscoreSibling, category: `Esc${stamp}` });
+
+    const res2 = await req(`/products?q=${encodeURIComponent(withUnderscore)}`);
+    const rows2 = (await res2.json()) as Product[];
+    expect(rows2.length).toBe(1);
+    expect(rows2[0]?.name).toBe(withUnderscore);
+  });
+
+  test("_limit is capped at 100", async () => {
+    const tag = `Cap${Date.now()}`;
+    // Create more than 100 rows so an uncapped limit would return >100.
+    const makers: Promise<Product>[] = [];
+    for (let i = 0; i < 101; i++) {
+      makers.push(createProduct({ name: `${tag}-${i}`, category: tag }));
+    }
+    await Promise.all(makers);
+
+    const res = await req(`/products?q=${tag}&_limit=1000`);
+    expect(res.status).toBe(200);
+    const rows = (await res.json()) as Product[];
+    expect(rows.length).toBe(100);
+    // The total still reflects the full filtered set.
+    expect(Number(res.headers.get("X-Total-Count"))).toBe(101);
+  });
+
+  test("patch with a partial body (one real field) still works", async () => {
+    const created = await createProduct({ name: "PartialBefore", stock: 1 });
+    const patch = await req(`/products/${created.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ stock: 7 }),
+    });
+    expect(patch.status).toBe(200);
+    const patched = (await patch.json()) as Product;
+    expect(patched.stock).toBe(7);
+    expect(patched.name).toBe("PartialBefore");
+  });
+
+  test("patch with an effectively-empty body -> 400 (no no-op updatedAt bump)", async () => {
+    const created = await createProduct({ name: "Untouched" });
+
+    const res = await req(`/products/${created.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(400);
+
+    // updatedAt must be unchanged (no silent write happened).
+    const got = (await (await req(`/products/${created.id}`)).json()) as Product;
+    expect(got.updatedAt).toBe(created.updatedAt);
+  });
 });

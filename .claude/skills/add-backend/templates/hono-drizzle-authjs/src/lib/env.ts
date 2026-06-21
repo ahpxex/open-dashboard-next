@@ -52,12 +52,23 @@ export const frontendOrigin =
   process.env.FRONTEND_ORIGIN?.trim() || "http://localhost:3000";
 
 /**
- * Auth.js `AUTH_URL` — the origin this service is reached at, including the
- * `/api/auth` base path. Optional in dev: when unset, `@hono/auth-js` derives the
- * origin from the request (host / x-forwarded-host), which works on whatever port
- * the service lands on. Set it in production behind a proxy.
+ * Optional bearer token guarding the `/products` data routes (CONTRACT §1: "A
+ * preset MAY additionally require a bearer token on data routes").
+ *
+ * - Unset (default) → the data API trusts its network and stays open, so
+ *   zero-config dev + the contract suite keep working with no token.
+ * - Set (non-empty) → every `/products` request MUST carry
+ *   `Authorization: Bearer <DATA_API_TOKEN>`; the frontend forwards it via
+ *   `restRepository`'s `headers`. The auth routes (`/api/auth/*`) are NOT gated
+ *   by this — they run their own Auth.js CSRF + cookie flow.
+ *
+ * Read **live** from the environment (not captured at module load) so the guard
+ * always reflects the current process env — the security decision should never
+ * be frozen at import time.
  */
-export const authUrl = process.env.AUTH_URL?.trim() || undefined;
+export function dataApiToken(): string | undefined {
+  return process.env.DATA_API_TOKEN?.trim() || undefined;
+}
 
 /** HTTP port the service listens on. */
 export const port = Number(process.env.PORT) || 8789;
