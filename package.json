@@ -8,6 +8,10 @@
     "build": "vite build",
     "start": "node .output/server/index.mjs",
     "serve": "vite preview",
+    "build:cf": "DEPLOY_TARGET=cloudflare VITE_SKIP_AUTH=1 vite build",
+    "preview:cf": "DEPLOY_TARGET=cloudflare VITE_SKIP_AUTH=1 vite preview",
+    "deploy:cf": "bun run build:cf && wrangler deploy",
+    "cf-typegen": "DEPLOY_TARGET=cloudflare wrangler types",
     "check": "biome check",
     "lint": "biome lint",
     "format": "biome format --write",
@@ -54,6 +58,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@cloudflare/vite-plugin": "^1.42.1",
     "@faker-js/faker": "^10.0.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/nitro-v2-vite-plugin": "^1.141.0",
@@ -80,7 +85,8 @@
     "vite": "^7.2.7",
     "vite-plugin-devtools-json": "^1.0.0",
     "vite-tsconfig-paths": "^6.0.1",
-    "vitest": "^4.0.15"
+    "vitest": "^4.0.15",
+    "wrangler": "^4.103.0"
   },
   "trustedDependencies": [
     "@parcel/watcher"

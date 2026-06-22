@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
-import { DEMO_USER, SKIP_AUTH } from "@/lib/demo-mode";
 
 function getInitials(name: string): string {
   return name
@@ -35,19 +34,13 @@ function getInitials(name: string): string {
 export function UserAvatar() {
   const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
-  const { data: session, isPending: sessionPending } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // Demo-deploy mode: there is no real session, so surface the fixed demo user.
-  const user = SKIP_AUTH ? DEMO_USER : session?.user;
-  const isPending = SKIP_AUTH ? false : sessionPending;
+  const user = session?.user;
   const displayName = user?.name || user?.email || "User";
 
   async function handleSignOut() {
-    if (SKIP_AUTH) {
-      navigate({ to: "/" });
-      return;
-    }
     setIsSigningOut(true);
     await authClient.signOut();
     navigate({ to: "/login" });
