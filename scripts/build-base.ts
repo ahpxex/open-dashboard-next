@@ -99,10 +99,22 @@ for (const mod of galleryOnlyModules) rm(join(base, mod));
 for (const s of ["sync-skills.ts", "build-base.ts"]) {
   rm(join(base, "scripts", s));
 }
+// 2c-bis. Cloudflare demo-deploy wiring (no-login showcase build). This is a
+// repo-only deploy recipe (docs/deploy-cloudflare.md) — the clean base stays
+// deploy-agnostic and ships no auth bypass. The files reverted to their pristine,
+// pre-demo-mode form are in the overrides list below (vite.config + the auth seam).
+for (const f of ["wrangler.jsonc", "src/lib/demo-mode.ts", "src/lib/stubs"]) {
+  rm(join(base, f));
+}
 // 2d. template-maintenance docs + the substrate's translated README that don't
 //     apply to a scaffolded product (the English README.md is replaced by the
 //     clean override below).
-for (const d of ["PORTING.md", "ROADMAP.md", "PATTERNS.md", "README.zh-CN.md"]) {
+for (const d of [
+  "PORTING.md",
+  "ROADMAP.md",
+  "PATTERNS.md",
+  "README.zh-CN.md",
+]) {
   rm(join(base, d));
 }
 
@@ -116,19 +128,43 @@ const overrides: [string, string][] = [
   ["seed.ts", "scripts/seed.ts"],
   ["CLAUDE.md", "CLAUDE.md"],
   ["README.md", "README.md"],
+  // Pristine, pre-demo-mode versions of the files the Cloudflare no-login build
+  // edits in the repo — so the scaffold base carries no skip-auth bypass and no
+  // Cloudflare-specific build wiring. Keep in sync with the repo originals.
+  ["vite.config.ts", "vite.config.ts"],
+  ["app-layout-route.tsx", "src/routes/_app.tsx"],
+  ["require-user.ts", "src/lib/require-user.ts"],
+  ["api-auth-route.ts", "src/routes/api/auth/$.ts"],
+  ["user-avatar.tsx", "src/components/UserAvatar.tsx"],
 ];
 for (const [from, to] of overrides) {
   copyFileSync(join(clean, from), join(base, to));
 }
 
-// 4. Drop the repo-only scripts from package.json.
+// 4. Drop the repo-only scripts + the Cloudflare-demo deploy deps/scripts from
+//    package.json — the clean base is deploy-agnostic (see step 2c-bis). The base
+//    bun.lock still lists the CF deps, but scaffold.sh runs a non-frozen
+//    `bun install` that reconciles it.
 const pkgPath = join(base, "package.json");
 const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
   scripts?: Record<string, string>;
+  devDependencies?: Record<string, string>;
 };
 if (pkg.scripts) {
-  for (const s of ["sync-skills", "build-base"]) {
+  for (const s of [
+    "sync-skills",
+    "build-base",
+    "build:cf",
+    "preview:cf",
+    "deploy:cf",
+    "cf-typegen",
+  ]) {
     delete pkg.scripts[s];
+  }
+}
+if (pkg.devDependencies) {
+  for (const d of ["@cloudflare/vite-plugin", "wrangler"]) {
+    delete pkg.devDependencies[d];
   }
 }
 writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
