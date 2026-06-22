@@ -99,8 +99,10 @@ for (const mod of galleryOnlyModules) rm(join(base, mod));
 for (const s of ["sync-skills.ts", "build-base.ts"]) {
   rm(join(base, "scripts", s));
 }
-// 2d. template-maintenance docs that don't apply to a scaffolded product.
-for (const d of ["PORTING.md", "ROADMAP.md", "PATTERNS.md"]) {
+// 2d. template-maintenance docs + the substrate's translated README that don't
+//     apply to a scaffolded product (the English README.md is replaced by the
+//     clean override below).
+for (const d of ["PORTING.md", "ROADMAP.md", "PATTERNS.md", "README.zh-CN.md"]) {
   rm(join(base, d));
 }
 

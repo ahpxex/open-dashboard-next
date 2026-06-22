@@ -1,5 +1,7 @@
 # Open Dashboard
 
+**English** · [简体中文](./README.zh-CN.md)
+
 > A catalogue of **36 copy-ready admin UI shapes** — CRUD tables, detail &
 > master-detail pages, kanban, calendar, wizard, charts, billing, RBAC, i18n, and
 > more — that an AI agent **installs and composes** into a real back-office.
@@ -90,6 +92,11 @@ never ships code the repo hasn't typechecked, built, and tested — the gallery 
 Built on TanStack Start (React 19 + Vite + Nitro), Drizzle + better-auth,
 shadcn-on-[`@base-ui/react`](https://base-ui.com/) + Tailwind v4, with Bun, Biome,
 and Vitest.
+
+## Community
+
+Built in the open and shared with the [linux.do](https://linux.do/) community —
+questions, feedback, and show-and-tell are welcome there.
 
 ## License
 
