@@ -1,6 +1,6 @@
 import { MapPinIcon, UsersIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ActionMenu, type ChipColor, StatusChip } from "@/infra/ui";
 import type { Company, CompanyIndustry } from "./schema";
 
@@ -36,7 +36,7 @@ export function CompanyCard({
 }) {
   return (
     <Card>
-      <CardContent className="flex flex-col gap-3">
+      <CardContent className="flex flex-1 flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <Link
             to="/crm/companies/$id"
@@ -56,18 +56,18 @@ export function CompanyCard({
           colorMap={industryColorMap}
           labelMap={industryLabelMap}
         />
-
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <UsersIcon size={14} />
-            {company.size.toLocaleString()} staff
-          </span>
-          <span className="flex items-center gap-1">
-            <MapPinIcon size={14} />
-            {company.location}
-          </span>
-        </div>
       </CardContent>
+
+      <CardFooter className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <UsersIcon size={14} />
+          {company.size.toLocaleString()} staff
+        </span>
+        <span className="flex items-center gap-1">
+          <MapPinIcon size={14} />
+          {company.location}
+        </span>
+      </CardFooter>
     </Card>
   );
 }

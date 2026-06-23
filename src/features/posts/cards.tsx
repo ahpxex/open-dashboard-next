@@ -1,4 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ActionMenu } from "@/infra/ui";
 import type { Post } from "./schema";
 
@@ -28,14 +34,14 @@ export function PostCard({
           />
         </div>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col justify-between gap-3">
+      <CardContent className="flex-1">
         <p className="line-clamp-3 text-xs text-muted-foreground">
           {post.body}
         </p>
-        <span className="text-xs text-muted-foreground tabular-nums">
-          Author · User {post.userId}
-        </span>
       </CardContent>
+      <CardFooter className="text-xs text-muted-foreground tabular-nums">
+        Author · User {post.userId}
+      </CardFooter>
     </Card>
   );
 }
