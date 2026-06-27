@@ -40,11 +40,19 @@ function activeHrefFor(pathname: string, hrefs: string[]): string | null {
 
 // Active state: monochrome but clearly heavier than the bare accent — the
 // accent fill + bold full-strength text + a high-contrast 3px left indicator bar
-// (inset shadow, so it adds no layout shift). All from sidebar theme tokens, so
-// it follows dark mode + rebrand with no hardcoded colour. Dials: widen the 3px
-// bar, or swap the bar colour token, for more/less weight.
+// (inset shadow, so it adds no layout shift). The button sits at a CONSTANT
+// `+0.5rem` right bleed (eating the group's right padding) so the active fill and
+// the hover highlight are flush against the sidebar's right edge while keeping the
+// left inset + bar — an intentional, anchored look. The width is applied always
+// (not gated on `:hover` / `:data-active`), so on hover the background just fills
+// in place instead of animating its width outward — the button keeps its
+// `transition-[width]` for the collapse/expand animation, but it does not fire on
+// hover. All from sidebar theme tokens, so it follows dark mode + rebrand with no
+// hardcoded colour. Dials: the `+0.5rem` right bleed, the 3px bar width, or the
+// bar colour token, for more/less weight. (Collapsed icon rail forces `size-8!`,
+// so the widen is a no-op there.)
 const ACTIVE_CLASSES =
-  "data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground data-active:shadow-[inset_3px_0_0_0_var(--sidebar-foreground)] data-active:hover:bg-sidebar-accent";
+  "w-[calc(100%+0.5rem)] data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground data-active:shadow-[inset_3px_0_0_0_var(--sidebar-foreground)] data-active:hover:bg-sidebar-accent";
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
