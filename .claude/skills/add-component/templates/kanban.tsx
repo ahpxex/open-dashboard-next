@@ -225,11 +225,8 @@ function KanbanColumn({
       </div>
 
       {/* Pad all sides: cards outline with `ring-1` (drawn outside the box) and
-          would clip top/bottom at the scroll edges otherwise. On the right, the
-          larger break-out (`-mr-4 md:-mr-6` cancels the shell's `p-4 md:p-6`
-          page padding; `pr-4 md:pr-6` holds the cards back) pulls the scroll
-          container to the shell's inset edge so the scrollbar hugs it. */}
-      <div className="-m-0.5 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-0.5 -mr-4 pr-4 md:-mr-6 md:pr-6">
+          would clip top/bottom at the scroll edges otherwise. */}
+      <div className="-m-0.5 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-0.5">
         <SortableContext
           items={cards.map((c) => c.id)}
           strategy={verticalListSortingStrategy}
