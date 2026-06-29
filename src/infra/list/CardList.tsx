@@ -98,15 +98,12 @@ export function CardList<T>({
         ) : null}
       </div>
 
-      {/* Cards outline with `ring-1` (drawn OUTSIDE the box), so the scroll
-          container needs padding on ALL sides — the matching negative margin
-          keeps the layout flush — or the top/bottom rings clip at the scroll
-          edges (only `px` here left them clipped vertically).
-          On the right, a larger break-out (`-mr-4 md:-mr-6` cancels the shell's
-          `p-4 md:p-6` page padding; `pr-4 md:pr-6` holds the cards back) pulls
-          the scroll container to the shell's inset edge so the vertical
-          scrollbar hugs that edge instead of floating ~24px inside it. */}
-      <div className="-m-0.5 min-h-0 flex-1 overflow-auto p-0.5 -mr-4 pr-4 md:-mr-6 md:pr-6">
+      {/* Pull the scroll container to the shell's inset edge so the vertical
+          scrollbar hugs that edge instead of floating ~24px inside it:
+          `-mr-4 md:-mr-6` cancels the shell's `p-4 md:p-6` page padding;
+          `pr-4 md:pr-6` holds the cards back. Card uses `border` (drawn
+          inside the box), so no edge padding is needed to avoid clipping. */}
+      <div className="min-h-0 flex-1 overflow-auto -mr-4 pr-4 md:-mr-6 md:pr-6">
         {isLoading && data.length === 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: skeletonCount }, (_, i) => (
